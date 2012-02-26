@@ -1,0 +1,3 @@
+https://github.com/dgouldin/python-oauth2/tarball/master
+requests
+python-dateutil==1.5
