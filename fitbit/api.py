@@ -28,7 +28,8 @@ class FitbitOauthClient(oauth.Client):
     access_token_url = "%s/oauth/access_token" % API_ENDPOINT
     authorization_url = "%s/oauth/authorize" % AUTHORIZE_ENDPOINT
 
-    def __init__(self, consumer_key, consumer_secret, user_key=None, user_secret=None, user_id=None, *args, **kwargs):
+    def __init__(self, consumer_key, consumer_secret, user_key=None,
+                 user_secret=None, user_id=None, *args, **kwargs):
         if user_key and user_secret:
             self._token = oauth.Token(user_key, user_secret)
         else:
@@ -54,8 +55,10 @@ class FitbitOauthClient(oauth.Client):
         if not method:
             method = 'POST' if data else 'GET'
         request = oauth.Request.from_consumer_and_token(self._consumer, self._token, http_method=method, http_url=url, parameters=data)
-        request.sign_request(self._signature_method, self._consumer, self._token)
-        response = self._request(method, url, data=data, headers=request.to_header())
+        request.sign_request(self._signature_method, self._consumer,
+                             self._token)
+        response = self._request(method, url, data=data,
+                                 headers=request.to_header())
 
         if response.status_code == 401:
             raise HTTPUnauthorized(response)
@@ -74,28 +77,35 @@ class FitbitOauthClient(oauth.Client):
     def fetch_request_token(self):
         # via headers
         # -> OAuthToken
-        request = oauth.Request.from_consumer_and_token(self._consumer, http_url=self.request_token_url)
+        request = oauth.Request.from_consumer_and_token(self._consumer,
+                                              http_url=self.request_token_url)
         request.sign_request(self._signature_method, self._consumer, None)
-        response = self._request(request.method, self.request_token_url, headers=request.to_header())
+        response = self._request(request.method, self.request_token_url,
+                                 headers=request.to_header())
         return oauth.Token.from_string(response.content)
 
     def authorize_token_url(self, token):
-        request = oauth.Request.from_token_and_callback(token=token, http_url=self.authorization_url)
+        request = oauth.Request.from_token_and_callback(token=token,
+                                              http_url=self.authorization_url)
         return request.to_url()
 
     #def authorize_token(self, token):
     #    # via url
     #    # -> typically just some okay response
-    #    request = oauth.Request.from_token_and_callback(token=token, http_url=self.authorization_url)
-    #    response = self._request(request.method, request.to_url(), headers=request.to_header())
+    #    request = oauth.Request.from_token_and_callback(token=token,
+    #                                         http_url=self.authorization_url)
+    #    response = self._request(request.method, request.to_url(),
+    #                                             headers=request.to_header())
     #    return response.content
 
     def fetch_access_token(self, token, verifier):
         request = oauth.Request.from_consumer_and_token(self._consumer, token, http_method='POST', http_url=self.access_token_url, parameters={'oauth_verifier': verifier})
         body = "oauth_verifier=%s" % verifier
-        response = self._request('POST', self.access_token_url, data=body, headers=request.to_header())
+        response = self._request('POST', self.access_token_url, data=body,
+                                 headers=request.to_header())
         if response.status_code != 200:
-            raise Exception("Invalid response %s." % response.content)  # #TODO custom exceptions
+            # TODO custom exceptions
+            raise Exception("Invalid response %s." % response.content)
         params = urlparse.parse_qs(response.content, keep_blank_values=False)
         self.user_id = params['encoded_user_id'][0]
         self._token = oauth.Token.from_string(response.content)
@@ -135,7 +145,8 @@ class Fitbit(object):
         # creating and deleting records once, and use curry to make individual
         # Methods for each
         for resource in self._resource_list:
-            setattr(self, resource, curry(self._COLLECTION_RESOURCE, resource=resource))
+            setattr(self, resource, curry(self._COLLECTION_RESOURCE,
+                                          resource=resource))
 
             if resource not in ['body', 'glucose']:
                 # Body and Glucose entries are not currently able to be deleted
@@ -143,7 +154,8 @@ class Fitbit(object):
 
         for qualifier in self._qualifiers:
             setattr(self, '%s_activities' % qualifier, curry(self.activity_stats, qualifier=qualifier))
-            setattr(self, '%s_foods' % qualifier, curry(self._food_stats, qualifier=qualifier))
+            setattr(self, '%s_foods' % qualifier, curry(self._food_stats,
+                                                        qualifier=qualifier))
 
     def make_request(self, *args, **kwargs):
         ##@ This should handle data level errors, improper requests, and bad
@@ -180,10 +192,12 @@ class Fitbit(object):
         """
         if not user_id or data:
             user_id = '-'
-        url = "%s/%s/user/%s/profile.json" % (self.API_ENDPOINT, self.API_VERSION, user_id)
+        url = "%s/%s/user/%s/profile.json" % (self.API_ENDPOINT,
+                                              self.API_VERSION, user_id)
         return self.make_request(url, data)
 
-    def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None, data=None):
+    def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None,
+                             data=None):
         """
         Retreiving and logging of each type of collection data.
 
@@ -261,14 +275,15 @@ class Fitbit(object):
             raise DeleteError(response)
         return response
 
-    def time_series(self, resource, user_id=None, base_date='today', period=None, end_date=None):
+    def time_series(self, resource, user_id=None, base_date='today',
+                    period=None, end_date=None):
         """
         The time series is a LOT of methods, (documented at url below) so they
-        don't get their own method. They all follow the same patterns, and return
-        similar formats.
+        don't get their own method. They all follow the same patterns, and
+        return similar formats.
 
-        Taking liberty, this assumes a base_date of today, the current user, and
-        a 1d period.
+        Taking liberty, this assumes a base_date of today, the current user,
+        and a 1d period.
 
         https://wiki.fitbit.com/display/API/API-Get-Time-Series
         """
@@ -555,7 +570,8 @@ class Fitbit(object):
         """
         return self.respond_to_invite(other_user_id, accept=False)
 
-    def subscription(self, subscription_id, subscriber_id, collection=None, method='POST'):
+    def subscription(self, subscription_id, subscriber_id, collection=None,
+                     method='POST'):
         """
         https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
         """
@@ -593,6 +609,8 @@ class Fitbit(object):
         return self.make_request(url)
 
     @classmethod
-    def from_oauth_keys(self, consumer_key, consumer_secret, user_key=None, user_secret=None, user_id=None, system=US):
-        client = FitbitOauthClient(consumer_key, consumer_secret, user_key, user_secret, user_id)
+    def from_oauth_keys(self, consumer_key, consumer_secret, user_key=None,
+                        user_secret=None, user_id=None, system=US):
+        client = FitbitOauthClient(consumer_key, consumer_secret, user_key,
+                                   user_secret, user_id)
         return self(client, system)
