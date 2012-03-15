@@ -127,8 +127,8 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, client, system=US):
-        self.client = client
+    def __init__(self, system=US, *kwargs):
+        self.client = FitbitOauthClient(*kwargs)
         self.SYSTEM = system
 
         # All of these use the same patterns, define the method for accessing
@@ -193,7 +193,17 @@ class Fitbit(object):
             [user_id] defaults to current logged in user
             [data] optional, include for creating a record, exclude for access
 
-        https://wiki.fitbit.com/display/API/Fitbit+Resource+Access+API
+        This builds the following methods::
+
+            body(date=None, user_id=None, data=None)
+            activities(date=None, user_id=None, data=None)
+            foods(date=None, user_id=None, data=None)
+            water(date=None, user_id=None, data=None)
+            sleep(date=None, user_id=None, data=None)
+            heart(date=None, user_id=None, data=None)
+            bp(date=None, user_id=None, data=None)
+
+        * https://wiki.fitbit.com/display/API/Fitbit+Resource+Access+API
         """
 
         if not date:
@@ -228,6 +238,17 @@ class Fitbit(object):
         Arguments:
             resource, defined automatically via curry
             log_id, required, log entry to delete
+
+        This builds the following methods::
+
+            delete_body(log_id)
+            delete_activities(log_id)
+            delete_foods(log_id)
+            delete_water(log_id)
+            delete_sleep(log_id)
+            delete_heart(log_id)
+            delete_bp(log_id)
+
         """
         url = "%s/%s/user/-/%s/%s.json" % (
             self.API_ENDPOINT,
@@ -244,7 +265,7 @@ class Fitbit(object):
         """
         The time series is a LOT of methods, (documented at url below) so they
         don't get their own method. They all follow the same patterns, and return
-            similar formats.
+        similar formats.
 
         Taking liberty, this assumes a base_date of today, the current user, and
         a 1d period.
@@ -281,11 +302,16 @@ class Fitbit(object):
 
     def activity_stats(self, user_id=None, qualifier=''):
         """
-        https://wiki.fitbit.com/display/API/API-Get-Activity-Stats
+        * https://wiki.fitbit.com/display/API/API-Get-Activity-Stats
+        * https://wiki.fitbit.com/display/API/API-Get-Favorite-Activities
+        * https://wiki.fitbit.com/display/API/API-Get-Recent-Activities
+        * https://wiki.fitbit.com/display/API/API-Get-Frequent-Activities
 
-        https://wiki.fitbit.com/display/API/API-Get-Favorite-Activities
-        https://wiki.fitbit.com/display/API/API-Get-Recent-Activities
-        https://wiki.fitbit.com/display/API/API-Get-Frequent-Activities
+        This builds the following methods::
+
+            recent_activities(user_id=None, qualifier='')
+            favorite_activities(user_id=None, qualifier='')
+            frequent_activities(user_id=None, qualifier='')
         """
         if not user_id:
             user_id = '-'
@@ -307,9 +333,15 @@ class Fitbit(object):
 
     def _food_stats(self, user_id=None, qualifier=''):
         """
-        https://wiki.fitbit.com/display/API/API-Get-Recent-Foods
-        https://wiki.fitbit.com/display/API/API-Get-Frequent-Foods
-        https://wiki.fitbit.com/display/API/API-Get-Favorite-Foods
+        This builds the convenience methods on initialization::
+
+            recent_foods(user_id=None, qualifier='')
+            favorite_foods(user_id=None, qualifier='')
+            frequent_foods(user_id=None, qualifier='')
+
+        * https://wiki.fitbit.com/display/API/API-Get-Recent-Foods
+        * https://wiki.fitbit.com/display/API/API-Get-Frequent-Foods
+        * https://wiki.fitbit.com/display/API/API-Get-Favorite-Foods
         """
         if not user_id:
             user_id = '-'
