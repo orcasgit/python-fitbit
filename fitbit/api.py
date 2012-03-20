@@ -4,7 +4,6 @@ import requests
 import urlparse
 import json
 import datetime
-import pdb  #REMOVE!
 import urllib
 
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
@@ -137,20 +136,20 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, system=US, *kwargs):
-        self.client = FitbitOauthClient(*kwargs)
+    def __init__(self, system=US, **kwargs):
+        self.client = FitbitOauthClient(**kwargs)
         self.SYSTEM = system
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual
         # Methods for each
         for resource in self._resource_list:
-            setattr(self, resource, curry(self._COLLECTION_RESOURCE,
-                                          resource=resource))
+            setattr(self, resource, curry(self._COLLECTION_RESOURCE, resource))
 
             if resource not in ['body', 'glucose']:
                 # Body and Glucose entries are not currently able to be deleted
-                setattr(self, 'delete_%s' % resource, curry(self._DELETE_COLLECTION_RESOURCE, resource=resource))
+                setattr(self, 'delete_%s' % resource, curry(
+                    self._DELETE_COLLECTION_RESOURCE, resource))
 
         for qualifier in self._qualifiers:
             setattr(self, '%s_activities' % qualifier, curry(self.activity_stats, qualifier=qualifier))
@@ -163,18 +162,23 @@ class Fitbit(object):
         headers = kwargs.get('headers', {})
         headers.update({'Accept-Language': self.SYSTEM})
         kwargs['headers'] = headers
+
+        method = kwargs.get('method', 'GET')
         response = self.client.make_request(*args, **kwargs)
-        if response.status_code in [202, 204]:
+
+
+        if response.status_code == 202:
             return True
+        if method == 'DELETE':
+            if response.status_code == 204:
+                return True
+            else:
+                raise DeleteError(response)
         try:
             rep = json.loads(response.content)
         except ValueError:
-            if self.DEBUG:
-                pdb.set_trace()
             raise BadResponse
 
-        if rep.get('errors', None) and self.DEBUG:
-            pdb.set_trace()
         return rep
 
     def user_profile(self, user_id=None, data=None):
@@ -271,8 +275,6 @@ class Fitbit(object):
             log_id,
         )
         response = self.make_request(url, method='DELETE')
-        if response.status_code != 204:
-            raise DeleteError(response)
         return response
 
     def time_series(self, resource, user_id=None, base_date='today',

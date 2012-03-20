@@ -1,3 +1,4 @@
+## We're using the best maintained fork of python-oauth2
 https://github.com/dgouldin/python-oauth2/tarball/master
 requests
 python-dateutil==1.5

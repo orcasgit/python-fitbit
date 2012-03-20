@@ -1,0 +1,104 @@
+import unittest
+import mock
+import requests
+from fitbit import Fitbit
+from fitbit import exceptions
+
+class ExceptionTest(unittest.TestCase):
+    """
+    Tests that certain response codes raise certain exceptions
+    """
+    client_kwargs = {
+        "consumer_key": "",
+        "consumer_secret": "",
+        "user_key": None,
+        "user_secret": None,
+    }
+
+
+    def test_response_ok(self):
+        """
+        This mocks a pretty normal resource, that the request was authenticated,
+        and data was returned.  This test should just run and not raise any
+        exceptions
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.status_code = 200
+        r.content = '{"normal": "resource"}'
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+        f.user_profile()
+
+        r.status_code = 202
+        f.user_profile()
+
+        r.status_code = 204
+        f.user_profile()
+
+
+    def test_response_auth(self):
+        """
+        This test checks how the client handles different auth responses, and
+        the exceptions raised by the client.
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.status_code = 401
+        r.content = "{'normal': 'resource'}"
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+
+        self.assertRaises(exceptions.HTTPUnauthorized, f.user_profile)
+
+        r.status_code = 403
+        self.assertRaises(exceptions.HTTPForbidden, f.user_profile)
+
+
+    def test_response_error(self):
+        """
+        Tests other HTTP errors
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.content = "{'normal': 'resource'}"
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+
+        r.status_code = 404
+        self.assertRaises(exceptions.HTTPNotFound, f.user_profile)
+
+        r.status_code = 409
+        self.assertRaises(exceptions.HTTPConflict, f.user_profile)
+
+        r.status_code = 500
+        self.assertRaises(exceptions.HTTPServerError, f.user_profile)
+
+        r.status_code = 499
+        self.assertRaises(exceptions.HTTPBadRequest, f.user_profile)
+
+
+    def test_serialization(self):
+        """
+        Tests non-json data returned
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.status_code = 200
+        r.content = "iyam not jason"
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+        self.assertRaises(exceptions.BadResponse, f.user_profile)
+
+    def test_delete_error(self):
+        """
+        Delete requests should return 204
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.status_code = 201
+        r.content = '{"it\'s all": "ok"}'
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+        self.assertRaises(exceptions.DeleteError, f.delete_activities, 12345)
+

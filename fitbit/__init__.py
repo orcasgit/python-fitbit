@@ -6,7 +6,7 @@ Fitbit API Library
 :copyright: (c) 2012 by Issac Kelly.
 :license: BSD, see LICENSE for more details.
 """
-from .exceptions import BadResponse
+
 from .api import Fitbit, FitbitConsumer, FitbitOauthClient
 
 # Meta.

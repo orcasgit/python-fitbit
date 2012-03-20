@@ -24,6 +24,7 @@ setup(
     include_package_data=True,
     install_requires=required,
     license='Apache 2.0',
+    test_suite='tests.all_tests',
     classifiers=(
         'Intended Audience :: Developers',
         'Natural Language :: English',

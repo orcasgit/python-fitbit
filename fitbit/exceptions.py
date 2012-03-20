@@ -14,8 +14,6 @@ class DeleteError(Exception):
 
 class HTTPException(Exception):
     def __init__(self, response, *args, **kwargs):
-        import pdb
-        pdb.set_trace()
         super(HTTPException, self).__init__(*args, **kwargs)
 
 class HTTPBadRequest(HTTPException):
