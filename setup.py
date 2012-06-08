@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import fitbit
+import re
 
 try:
     from setuptools import setup
@@ -9,14 +9,16 @@ except ImportError:
     from distutils.core import setup
 
 required = ['requests==0.10.1', 'python-dateutil==1.5']
-
+fbinit = open('fitbit/__init__.py').read()
+author = re.search("__author__ = '([^']+)'", fbinit).group(1)
+version = re.search("__version__ = '([^']+)'", fbinit).group(1)
 
 setup(
     name='fitbit',
-    version=fitbit.__version__,
+    version=version,
     description='Fitbit API Wrapper.',
     long_description=open('README.rst').read(),
-    author='Issac Kelly, ORCAS',
+    author=author,
     author_email='issac@kellycreativetech.com',
     url='https://github.com/issackelly/python-fitbit',
     packages=['fitbit'],
