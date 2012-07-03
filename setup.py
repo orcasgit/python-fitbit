@@ -8,7 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-required = ['requests==0.10.1', 'python-dateutil==1.5']
+required = ['requests==0.13.2', 'python-dateutil==1.5']
 fbinit = open('fitbit/__init__.py').read()
 author = re.search("__author__ = '([^']+)'", fbinit).group(1)
 version = re.search("__version__ = '([^']+)'", fbinit).group(1)
