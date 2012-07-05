@@ -73,11 +73,21 @@ class FitbitOauthClient(oauth.Client):
             raise HTTPBadRequest(response)
         return response
 
-    def fetch_request_token(self):
-        # via headers
-        # -> OAuthToken
-        request = oauth.Request.from_consumer_and_token(self._consumer,
-                                              http_url=self.request_token_url)
+    def fetch_request_token(self, parameters=None):
+        """
+        via headers
+        -> OAuthToken
+
+        Providing 'oauth_callback' parameter in the Authorization header of
+        request_token_url request, will have priority over the dev.fitbit.com
+        settings, ie. parameters = {'oauth_callback': 'callback_url'}
+        """
+
+        request = oauth.Request.from_consumer_and_token(
+            self._consumer,
+            http_url=self.request_token_url,
+            parameters=parameters
+        )
         request.sign_request(self._signature_method, self._consumer, None)
         response = self._request(request.method, self.request_token_url,
                                  headers=request.to_header())
