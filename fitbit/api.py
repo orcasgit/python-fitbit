@@ -7,8 +7,8 @@ import datetime
 import urllib
 
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
-    HTTPUnauthorized, HTTPForbidden, HTTPServerError, HTTPConflict,
-    HTTPNotFound)
+                               HTTPUnauthorized, HTTPForbidden,
+                               HTTPServerError, HTTPConflict, HTTPNotFound)
 from fitbit.utils import curry
 
 
@@ -175,7 +175,6 @@ class Fitbit(object):
 
         method = kwargs.get('method', 'GET')
         response = self.client.make_request(*args, **kwargs)
-
 
         if response.status_code == 202:
             return True
