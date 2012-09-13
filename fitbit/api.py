@@ -94,8 +94,10 @@ class FitbitOauthClient(oauth.Client):
         return oauth.Token.from_string(response.content)
 
     def authorize_token_url(self, token):
-        request = oauth.Request.from_token_and_callback(token=token,
-                                              http_url=self.authorization_url)
+        request = oauth.Request.from_token_and_callback(
+            token=token,
+            http_url=self.authorization_url
+        )
         return request.to_url()
 
     #def authorize_token(self, token):
