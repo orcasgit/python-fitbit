@@ -35,7 +35,7 @@ either ``None`` or a ``date`` or ``datetime`` object
 (anything with proper strftime will do), or a string formatted
 as ``%Y-%m-%d``.
 
-.. autoclass:: fitbit.api.Fitbit
+.. autoclass:: fitbit.Fitbit
     :private-members:
     :members:
 
