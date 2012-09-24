@@ -8,7 +8,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-required = ['requests==0.13.2', 'python-dateutil==1.5']
+required = ['requests==0.14.0', 'python-dateutil==1.5']
 fbinit = open('fitbit/__init__.py').read()
 author = re.search("__author__ = '([^']+)'", fbinit).group(1)
 version = re.search("__version__ = '([^']+)'", fbinit).group(1)
@@ -27,6 +27,7 @@ setup(
     install_requires=required,
     license='Apache 2.0',
     test_suite='tests.all_tests',
+    tests_require=['mock==0.8.0'],
     classifiers=(
         'Intended Audience :: Developers',
         'Natural Language :: English',
