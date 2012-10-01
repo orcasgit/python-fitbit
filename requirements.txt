@@ -1,4 +1,4 @@
 ## We're using the best maintained fork of python-oauth2
-https://github.com/dgouldin/python-oauth2/tarball/master
+https://github.com/dgouldin/python-oauth2/tarball/master#egg=oauth2
 requests==0.14.0
 python-dateutil==1.5
