@@ -75,6 +75,19 @@ class FitbitOauthClient(oauth.Client):
 
     def fetch_request_token(self, parameters=None):
         """
+        Step 1 of getting authorized to access a user's data at fitbit: this
+        makes a signed request to fitbit to get a token to use in the next
+        step.  Returns that token.
+
+        Set parameters['oauth_callback'] to a URL and when the user has
+        granted us access at the fitbit site, fitbit will redirect them to the URL
+        you passed.  This is how we get back the magic verifier string from fitbit
+        if we're a web app. If we don't pass it, then fitbit will just display
+        the verifier string for the user to copy and we'll have to ask them to
+        paste it for us and read it that way.
+        """
+
+        """
         via headers
         -> OAuthToken
 
@@ -94,6 +107,11 @@ class FitbitOauthClient(oauth.Client):
         return oauth.Token.from_string(response.content)
 
     def authorize_token_url(self, token):
+        """Step 2: Given the token returned by fetch_request_token(), return
+        the URL the user needs to go to in order to grant us authorization
+        to look at their data.  Then redirect the user to that URL, open their
+        browser to it, or tell them to copy the URL into their browser.
+        """
         request = oauth.Request.from_token_and_callback(
             token=token,
             http_url=self.authorization_url
@@ -110,6 +128,11 @@ class FitbitOauthClient(oauth.Client):
     #    return response.content
 
     def fetch_access_token(self, token, verifier):
+        """Step 4: Given the token from step 1, and the verifier from step 3 (see step 2),
+        calls fitbit again and returns an access token object.  Extract .key and .secret
+        from that and save them, then pass them as user_key and user_secret in future
+        API calls to fitbit to get this user's data.
+        """
         request = oauth.Request.from_consumer_and_token(self._consumer, token, http_method='POST', http_url=self.access_token_url, parameters={'oauth_verifier': verifier})
         body = "oauth_verifier=%s" % verifier
         response = self._request('POST', self.access_token_url, data=body,
@@ -148,8 +171,8 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, system=US, **kwargs):
-        self.client = FitbitOauthClient(**kwargs)
+    def __init__(self, consumer_key, consumer_secret, system=US, **kwargs):
+        self.client = FitbitOauthClient(consumer_key, consumer_secret, **kwargs)
         self.SYSTEM = system
 
         # All of these use the same patterns, define the method for accessing
