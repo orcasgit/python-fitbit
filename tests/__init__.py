@@ -1,5 +1,6 @@
 import unittest
 from test_exceptions import ExceptionTest
+from test_auth import AuthTest
 
 
 def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=None):
@@ -11,4 +12,5 @@ def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=No
     }
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ExceptionTest))
+    suite.addTest(unittest.makeSuite(AuthTest))
     return suite
