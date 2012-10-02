@@ -13,9 +13,10 @@ from .api import Fitbit, FitbitConsumer, FitbitOauthClient
 
 __title__ = 'fitbit'
 __author__ = 'Issac Kelly and ORCAS'
+__author_email__ = 'pperez@orcasinc.com'
 __copyright__ = 'Copyright 2012 Issac Kelly'
 __license__ = 'Apache 2.0'
 
-__version__ = '0.0.1'
+__version__ = '0.0.2'
 
 # Module namespace.
