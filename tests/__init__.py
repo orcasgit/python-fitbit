@@ -1,5 +1,6 @@
 import unittest
 from test_exceptions import ExceptionTest
+from tests.test_api import APITest, CollectionResourceTest, DeleteCollectionResourceTest, MiscTest
 
 
 def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=None):
@@ -11,4 +12,8 @@ def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=No
     }
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ExceptionTest))
+    suite.addTest(unittest.makeSuite(APITest))
+    suite.addTest(unittest.makeSuite(CollectionResourceTest))
+    suite.addTest(unittest.makeSuite(DeleteCollectionResourceTest))
+    suite.addTest(unittest.makeSuite(MiscTest))
     return suite

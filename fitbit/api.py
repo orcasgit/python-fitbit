@@ -129,7 +129,6 @@ class Fitbit(object):
 
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
-    DEBUG = True
 
     _resource_list = [
         'body',
@@ -175,7 +174,7 @@ class Fitbit(object):
         headers.update({'Accept-Language': self.SYSTEM})
         kwargs['headers'] = headers
 
-        method = kwargs.get('method', 'GET')
+        method = kwargs.get('method', 'POST' if 'data' in kwargs else 'GET')
         response = self.client.make_request(*args, **kwargs)
 
         if response.status_code == 202:
@@ -192,29 +191,43 @@ class Fitbit(object):
 
         return rep
 
-    def user_profile(self, user_id=None, data=None):
+    def user_profile_get(self, user_id=None):
         """
-        Get or Set a user profile. You can get other user's profile information
-        by passing user_id, or you can set your user profile information by
-        passing a dictionary of attributes that will be updated.
+        Get a user profile. You can get other user's profile information
+        by passing user_id, or you can get the current user's by not passing
+        a user_id
 
         .. note:
             This is not the same format that the GET comes back in, GET requests
             are wrapped in {'user': <dict of user data>}
 
         https://wiki.fitbit.com/display/API/API-Get-User-Info
-        https://wiki.fitbit.com/display/API/API-Update-User-Info
         """
-        if not user_id or data:
-            user_id = '-'
+        if user_id is None:
+            user_id = "-"
         url = "%s/%s/user/%s/profile.json" % (self.API_ENDPOINT,
                                               self.API_VERSION, user_id)
+        return self.make_request(url)
+
+    def user_profile_update(self, data):
+        """
+        Set a user profile. You can set your user profile information by
+        passing a dictionary of attributes that will be updated.
+
+        .. note:
+            This is not the same format that the GET comes back in, GET requests
+            are wrapped in {'user': <dict of user data>}
+
+        https://wiki.fitbit.com/display/API/API-Update-User-Info
+        """
+        url = "%s/%s/user/-/profile.json" % (self.API_ENDPOINT,
+                                              self.API_VERSION)
         return self.make_request(url, data)
 
     def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None,
                              data=None):
         """
-        Retreiving and logging of each type of collection data.
+        Retrieving and logging of each type of collection data.
 
         Arguments:
             resource, defined automatically via curry
@@ -222,7 +235,7 @@ class Fitbit(object):
             [user_id] defaults to current logged in user
             [data] optional, include for creating a record, exclude for access
 
-        This builds the following methods::
+        This implements the following methods::
 
             body(date=None, user_id=None, data=None)
             activities(date=None, user_id=None, data=None)
@@ -305,7 +318,8 @@ class Fitbit(object):
 
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
-        elif end_date:
+
+        if end_date:
             if not isinstance(end_date, basestring):
                 end = end_date.strftime('%Y-%m-%d')
             else:
@@ -335,7 +349,7 @@ class Fitbit(object):
         * https://wiki.fitbit.com/display/API/API-Get-Recent-Activities
         * https://wiki.fitbit.com/display/API/API-Get-Frequent-Activities
 
-        This builds the following methods::
+        This implements the following methods::
 
             recent_activities(user_id=None, qualifier='')
             favorite_activities(user_id=None, qualifier='')
@@ -345,11 +359,13 @@ class Fitbit(object):
             user_id = '-'
 
         if qualifier:
-            if qualifier in self._activity_qualifiers:
+            if qualifier in self._qualifiers:
                 qualifier = '/%s' % qualifier
             else:
                 raise ValueError("Qualifier must be one of %s"
-                    % ', '.join(self._activity_qualifiers))
+                    % ', '.join(self._qualifiers))
+        else:
+            qualifier = ''
 
         url = "%s/%s/user/%s/activities%s.json" % (
             self.API_ENDPOINT,
@@ -479,12 +495,12 @@ class Fitbit(object):
 
     def search_foods(self, query):
         """
-        https://wiki.fitbit.com/display/API/API-Get-Activity
+        https://wiki.fitbit.com/display/API/API-Search-Foods
         """
-        url = "%s/%s/foods/search.json?query=%s" % (
+        url = "%s/%s/foods/search.json?%s" % (
             self.API_ENDPOINT,
             self.API_VERSION,
-            urllib.urlencode(query)
+            urllib.urlencode({'query': query})
         )
         return self.make_request(url)
 
