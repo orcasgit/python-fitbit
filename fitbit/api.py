@@ -495,12 +495,12 @@ class Fitbit(object):
 
     def search_foods(self, query):
         """
-        https://wiki.fitbit.com/display/API/API-Get-Activity
+        https://wiki.fitbit.com/display/API/API-Search-Foods
         """
-        url = "%s/%s/foods/search.json?query=%s" % (
+        url = "%s/%s/foods/search.json?%s" % (
             self.API_ENDPOINT,
             self.API_VERSION,
-            urllib.urlencode(query)
+            urllib.urlencode({'query': query})
         )
         return self.make_request(url)
 
