@@ -75,6 +75,19 @@ class FitbitOauthClient(oauth.Client):
 
     def fetch_request_token(self, parameters=None):
         """
+        Step 1 of getting authorized to access a user's data at fitbit: this
+        makes a signed request to fitbit to get a token to use in the next
+        step.  Returns that token.
+
+        Set parameters['oauth_callback'] to a URL and when the user has
+        granted us access at the fitbit site, fitbit will redirect them to the URL
+        you passed.  This is how we get back the magic verifier string from fitbit
+        if we're a web app. If we don't pass it, then fitbit will just display
+        the verifier string for the user to copy and we'll have to ask them to
+        paste it for us and read it that way.
+        """
+
+        """
         via headers
         -> OAuthToken
 
@@ -94,6 +107,11 @@ class FitbitOauthClient(oauth.Client):
         return oauth.Token.from_string(response.content)
 
     def authorize_token_url(self, token):
+        """Step 2: Given the token returned by fetch_request_token(), return
+        the URL the user needs to go to in order to grant us authorization
+        to look at their data.  Then redirect the user to that URL, open their
+        browser to it, or tell them to copy the URL into their browser.
+        """
         request = oauth.Request.from_token_and_callback(
             token=token,
             http_url=self.authorization_url
@@ -110,6 +128,11 @@ class FitbitOauthClient(oauth.Client):
     #    return response.content
 
     def fetch_access_token(self, token, verifier):
+        """Step 4: Given the token from step 1, and the verifier from step 3 (see step 2),
+        calls fitbit again and returns an access token object.  Extract .key and .secret
+        from that and save them, then pass them as user_key and user_secret in future
+        API calls to fitbit to get this user's data.
+        """
         request = oauth.Request.from_consumer_and_token(self._consumer, token, http_method='POST', http_url=self.access_token_url, parameters={'oauth_verifier': verifier})
         body = "oauth_verifier=%s" % verifier
         response = self._request('POST', self.access_token_url, data=body,
@@ -129,7 +152,6 @@ class Fitbit(object):
 
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
-    DEBUG = True
 
     _resource_list = [
         'body',
@@ -148,8 +170,8 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, system=US, **kwargs):
-        self.client = FitbitOauthClient(**kwargs)
+    def __init__(self, consumer_key, consumer_secret, system=US, **kwargs):
+        self.client = FitbitOauthClient(consumer_key, consumer_secret, **kwargs)
         self.SYSTEM = system
 
         # All of these use the same patterns, define the method for accessing
@@ -175,7 +197,7 @@ class Fitbit(object):
         headers.update({'Accept-Language': self.SYSTEM})
         kwargs['headers'] = headers
 
-        method = kwargs.get('method', 'GET')
+        method = kwargs.get('method', 'POST' if 'data' in kwargs else 'GET')
         response = self.client.make_request(*args, **kwargs)
 
         if response.status_code == 202:
@@ -192,29 +214,43 @@ class Fitbit(object):
 
         return rep
 
-    def user_profile(self, user_id=None, data=None):
+    def user_profile_get(self, user_id=None):
         """
-        Get or Set a user profile. You can get other user's profile information
-        by passing user_id, or you can set your user profile information by
-        passing a dictionary of attributes that will be updated.
+        Get a user profile. You can get other user's profile information
+        by passing user_id, or you can get the current user's by not passing
+        a user_id
 
         .. note:
             This is not the same format that the GET comes back in, GET requests
             are wrapped in {'user': <dict of user data>}
 
         https://wiki.fitbit.com/display/API/API-Get-User-Info
-        https://wiki.fitbit.com/display/API/API-Update-User-Info
         """
-        if not user_id or data:
-            user_id = '-'
+        if user_id is None:
+            user_id = "-"
         url = "%s/%s/user/%s/profile.json" % (self.API_ENDPOINT,
                                               self.API_VERSION, user_id)
+        return self.make_request(url)
+
+    def user_profile_update(self, data):
+        """
+        Set a user profile. You can set your user profile information by
+        passing a dictionary of attributes that will be updated.
+
+        .. note:
+            This is not the same format that the GET comes back in, GET requests
+            are wrapped in {'user': <dict of user data>}
+
+        https://wiki.fitbit.com/display/API/API-Update-User-Info
+        """
+        url = "%s/%s/user/-/profile.json" % (self.API_ENDPOINT,
+                                              self.API_VERSION)
         return self.make_request(url, data)
 
     def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None,
                              data=None):
         """
-        Retreiving and logging of each type of collection data.
+        Retrieving and logging of each type of collection data.
 
         Arguments:
             resource, defined automatically via curry
@@ -222,7 +258,7 @@ class Fitbit(object):
             [user_id] defaults to current logged in user
             [data] optional, include for creating a record, exclude for access
 
-        This builds the following methods::
+        This implements the following methods::
 
             body(date=None, user_id=None, data=None)
             activities(date=None, user_id=None, data=None)
@@ -305,7 +341,8 @@ class Fitbit(object):
 
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
-        elif end_date:
+
+        if end_date:
             if not isinstance(end_date, basestring):
                 end = end_date.strftime('%Y-%m-%d')
             else:
@@ -335,7 +372,7 @@ class Fitbit(object):
         * https://wiki.fitbit.com/display/API/API-Get-Recent-Activities
         * https://wiki.fitbit.com/display/API/API-Get-Frequent-Activities
 
-        This builds the following methods::
+        This implements the following methods::
 
             recent_activities(user_id=None, qualifier='')
             favorite_activities(user_id=None, qualifier='')
@@ -345,11 +382,13 @@ class Fitbit(object):
             user_id = '-'
 
         if qualifier:
-            if qualifier in self._activity_qualifiers:
+            if qualifier in self._qualifiers:
                 qualifier = '/%s' % qualifier
             else:
                 raise ValueError("Qualifier must be one of %s"
-                    % ', '.join(self._activity_qualifiers))
+                    % ', '.join(self._qualifiers))
+        else:
+            qualifier = ''
 
         url = "%s/%s/user/%s/activities%s.json" % (
             self.API_ENDPOINT,
@@ -479,12 +518,12 @@ class Fitbit(object):
 
     def search_foods(self, query):
         """
-        https://wiki.fitbit.com/display/API/API-Get-Activity
+        https://wiki.fitbit.com/display/API/API-Search-Foods
         """
-        url = "%s/%s/foods/search.json?query=%s" % (
+        url = "%s/%s/foods/search.json?%s" % (
             self.API_ENDPOINT,
             self.API_VERSION,
-            urllib.urlencode(query)
+            urllib.urlencode({'query': query})
         )
         return self.make_request(url)
 

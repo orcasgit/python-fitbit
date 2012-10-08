@@ -28,13 +28,13 @@ class ExceptionTest(unittest.TestCase):
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
-        f.user_profile()
+        f.user_profile_get()
 
         r.status_code = 202
-        f.user_profile()
+        f.user_profile_get()
 
         r.status_code = 204
-        f.user_profile()
+        f.user_profile_get()
 
 
     def test_response_auth(self):
@@ -49,10 +49,10 @@ class ExceptionTest(unittest.TestCase):
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
 
-        self.assertRaises(exceptions.HTTPUnauthorized, f.user_profile)
+        self.assertRaises(exceptions.HTTPUnauthorized, f.user_profile_get)
 
         r.status_code = 403
-        self.assertRaises(exceptions.HTTPForbidden, f.user_profile)
+        self.assertRaises(exceptions.HTTPForbidden, f.user_profile_get)
 
 
     def test_response_error(self):
@@ -66,16 +66,16 @@ class ExceptionTest(unittest.TestCase):
         f.client._request = lambda *args, **kwargs: r
 
         r.status_code = 404
-        self.assertRaises(exceptions.HTTPNotFound, f.user_profile)
+        self.assertRaises(exceptions.HTTPNotFound, f.user_profile_get)
 
         r.status_code = 409
-        self.assertRaises(exceptions.HTTPConflict, f.user_profile)
+        self.assertRaises(exceptions.HTTPConflict, f.user_profile_get)
 
         r.status_code = 500
-        self.assertRaises(exceptions.HTTPServerError, f.user_profile)
+        self.assertRaises(exceptions.HTTPServerError, f.user_profile_get)
 
         r.status_code = 499
-        self.assertRaises(exceptions.HTTPBadRequest, f.user_profile)
+        self.assertRaises(exceptions.HTTPBadRequest, f.user_profile_get)
 
 
     def test_serialization(self):
@@ -88,7 +88,7 @@ class ExceptionTest(unittest.TestCase):
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
-        self.assertRaises(exceptions.BadResponse, f.user_profile)
+        self.assertRaises(exceptions.BadResponse, f.user_profile_get)
 
     def test_delete_error(self):
         """
