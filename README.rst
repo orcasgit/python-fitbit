@@ -4,6 +4,8 @@ python-fitbit
 
 Fitbit API Python Client Implementation
 
+See docs/ for documentation.
+
 Requirements
 ============
 

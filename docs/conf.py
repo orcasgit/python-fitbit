@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Python-Fitbit'
-copyright = u'2012, Issac Kelly, Percy Perez'
+copyright = u'Copyright 2012 ORCAS'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
