@@ -621,7 +621,20 @@ class Fitbit(object):
         Convenience method for respond_to_invite
         """
         return self.respond_to_invite(other_user_id, accept=False)
-
+        
+    def get_badges(self, user_id=None):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Badges
+        """
+        if not user_id:
+            user_id = '-'
+        url = "%s/%s/user/%s/badges.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            user_id
+        )
+        return self.make_request(url)
+      
     def subscription(self, subscription_id, subscriber_id, collection=None,
                      method='POST'):
         """
