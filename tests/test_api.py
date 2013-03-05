@@ -280,6 +280,10 @@ class MiscTest(TestBase):
         url = URLBASE + "/-/devices.json"
         self.common_api_test('get_devices', (), {}, (url,), {})
 
+    def test_badges(self):
+        url = URLBASE + "/-/badges.json"
+        self.common_api_test('get_badges', (), {}, (url,), {})
+
     def test_activities(self):
         url = "%s/%s/activities.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activities_list', (), {}, (url,), {})
