@@ -1,4 +1,4 @@
-
+import json
 
 class BadResponse(Exception):
     """
@@ -14,7 +14,12 @@ class DeleteError(Exception):
 
 class HTTPException(Exception):
     def __init__(self, response, *args, **kwargs):
-        super(HTTPException, self).__init__(*args, **kwargs)
+        try:
+            errors = json.loads(response.content)['errors']
+            message = '\n'.join([error['message'] for error in errors])
+        except Exception:
+            message = response
+        super(HTTPException, self).__init__(message, *args, **kwargs)
 
 class HTTPBadRequest(HTTPException):
     pass
