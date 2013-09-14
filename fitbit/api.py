@@ -152,6 +152,7 @@ class Fitbit(object):
 
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
+    WEEK_DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
 
     _resource_list = [
         'body',
@@ -494,6 +495,100 @@ class Fitbit(object):
             self.API_VERSION,
         )
         return self.make_request(url)
+
+    def get_alarms(self, device_id):
+        """
+        https://wiki.fitbit.com/display/API/API-Devices-Get-Alarms
+        """
+        url = "%s/%s/user/-/devices/tracker/%s/alarms.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            device_id
+        )
+        return self.make_request(url)
+
+    def create_alarm(self, device_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
+                     snooze_length=None, snooze_count=None, vibe='DEFAULT'):
+        """
+        https://wiki.fitbit.com/display/API/API-Devices-Add-Alarm
+        alarm_time should be a timezone aware datetime object.
+        """
+        url = "%s/%s/user/-/devices/tracker/%s/alarms.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            device_id
+        )
+        alarm_time = alarm_time.strftime("%H:%M%z")
+        # Check week_days list
+        if not isinstance(week_days, list):
+            raise ValueError("Week days needs to be a list")
+        for day in week_days:
+            if day not in self.WEEK_DAYS:
+                raise ValueError("Incorrect week day %s. see WEEK_DAY_LIST." % day)
+        data = {
+            'time': alarm_time,
+            'weekDays': week_days,
+            'recurring': recurring,
+            'enabled': enabled,
+            'vibe': vibe
+        }
+        if label:
+            data['label'] = label
+        if snooze_length:
+            data['snoozeLength'] = snooze_length
+        if snooze_count:
+            data['snoozeCount'] = snooze_count
+        return self.make_request(url, data=data, method="POST")
+        # return
+
+    def update_alarm(self, device_id, alarm_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
+                     snooze_length=None, snooze_count=None, vibe='DEFAULT'):
+        """
+        https://wiki.fitbit.com/display/API/API-Devices-Update-Alarm
+        alarm_time should be a timezone aware datetime object.
+        """
+        # TODO Refactor with create_alarm. Tons of overlap.
+        # Check week_days list
+        if not isinstance(week_days, list):
+            raise ValueError("Week days needs to be a list")
+        for day in week_days:
+            if day not in self.WEEK_DAYS:
+                raise ValueError("Incorrect week day %s. see WEEK_DAY_LIST." % day)
+        url = "%s/%s/user/-/devices/tracker/%s/alarms/%s.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            device_id,
+            alarm_id
+        )
+        alarm_time = alarm_time.strftime("%H:%M%z")
+
+        data = {
+            'time': alarm_time,
+            'weekDays': week_days,
+            'recurring': recurring,
+            'enabled': enabled,
+            'vibe': vibe
+        }
+        if label:
+            data['label'] = label
+        if snooze_length:
+            data['snoozeLength'] = snooze_length
+        if snooze_count:
+            data['snoozeCount'] = snooze_count
+        return self.make_request(url, data=data, method="POST")
+        # return
+
+    def delete_alarm(self, device_id, alarm_id):
+        """
+        https://wiki.fitbit.com/display/API/API-Devices-Delete-Alarm
+        """
+        url = "%s/%s/user/-/devices/tracker/%s/alarms/%s.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            device_id,
+            alarm_id
+        )
+        return self.make_request(url, method="DELETE")
 
     def activities_list(self):
         """
