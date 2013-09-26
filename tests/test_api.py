@@ -287,6 +287,8 @@ class MiscTest(TestBase):
     def test_activities(self):
         url = "%s/%s/activities.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activities_list', (), {}, (url,), {})
+        url = "%s/%s/user/-/activities.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
+        self.common_api_test('log_activity', (), {'data' : 'FOO'}, (url,), {'data' : 'FOO'} )
         url = "%s/%s/activities/FOOBAR.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activity_detail', ("FOOBAR",), {}, (url,), {})
 
