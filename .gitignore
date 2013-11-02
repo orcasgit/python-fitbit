@@ -5,3 +5,13 @@ docs/_build
 *.egg-info
 *.egg
 dist
+
+# Virtualenv
+bin
+build
+lib
+include
+local
+
+# Editors
+.idea

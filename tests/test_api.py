@@ -326,3 +326,71 @@ class MiscTest(TestBase):
         url = URLBASE + "/-/COLLECTION/apiSubscriptions/SUBSCRIPTION_ID-COLLECTION.json"
         self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {'method': 'THROW', 'collection': "COLLECTION"},
             (url,), {'method': 'THROW', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
+
+    def test_alarms(self):
+        url = "%s/-/devices/tracker/%s/alarms.json" % (URLBASE, 'FOO')
+        self.common_api_test('get_alarms', (), {'device_id': 'FOO'}, (url,), {})
+        url = "%s/-/devices/tracker/%s/alarms/%s.json" % (URLBASE, 'FOO', 'BAR')
+        self.common_api_test('delete_alarm', (), {'device_id': 'FOO', 'alarm_id': 'BAR'}, (url,), {'method': 'DELETE'})
+        url = "%s/-/devices/tracker/%s/alarms.json" % (URLBASE, 'FOO')
+        self.common_api_test('add_alarm',
+            (),
+            {'device_id': 'FOO',
+             'alarm_time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16),
+             'week_days': ['MONDAY']
+            },
+            (url,),
+            {'data':
+                 {'enabled': True,
+                    'recurring': False,
+                    'time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16).strftime("%H:%M%z"),
+                    'vibe': 'DEFAULT',
+                    'weekDays': ['MONDAY'],
+                },
+            'method': 'POST'
+            }
+        )
+        self.common_api_test('add_alarm',
+            (),
+            {'device_id': 'FOO',
+             'alarm_time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16),
+             'week_days': ['MONDAY'], 'recurring': True, 'enabled': False, 'label': 'ugh',
+             'snooze_length': 5,
+             'snooze_count': 5
+            },
+            (url,),
+            {'data':
+                 {'enabled': False,
+                  'recurring': True,
+                  'label': 'ugh',
+                  'snoozeLength': 5,
+                  'snoozeCount': 5,
+                  'time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16).strftime("%H:%M%z"),
+                  'vibe': 'DEFAULT',
+                  'weekDays': ['MONDAY'],
+                },
+            'method': 'POST'}
+        )
+        url = "%s/-/devices/tracker/%s/alarms/%s.json" % (URLBASE, 'FOO', 'BAR')
+        self.common_api_test('update_alarm',
+            (),
+            {'device_id': 'FOO',
+             'alarm_id': 'BAR',
+             'alarm_time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16),
+             'week_days': ['MONDAY'], 'recurring': True, 'enabled': False, 'label': 'ugh',
+             'snooze_length': 5,
+             'snooze_count': 5
+            },
+            (url,),
+            {'data':
+                 {'enabled': False,
+                  'recurring': True,
+                  'label': 'ugh',
+                  'snoozeLength': 5,
+                  'snoozeCount': 5,
+                  'time': datetime.datetime(year=2013, month=11, day=13, hour=8, minute=16).strftime("%H:%M%z"),
+                  'vibe': 'DEFAULT',
+                  'weekDays': ['MONDAY'],
+                },
+            'method': 'POST'}
+        )
