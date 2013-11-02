@@ -507,7 +507,7 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
-    def create_alarm(self, device_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
+    def add_alarm(self, device_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
                      snooze_length=None, snooze_count=None, vibe='DEFAULT'):
         """
         https://wiki.fitbit.com/display/API/API-Devices-Add-Alarm
@@ -589,6 +589,36 @@ class Fitbit(object):
             alarm_id
         )
         return self.make_request(url, method="DELETE")
+
+    def get_sleep(self, date):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Sleep
+        date should be a datetime.date object.
+        """
+        url = "%s/%s/user/-/sleep/date/%s-%s-%s.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            date.year,
+            date.month,
+            date.day
+        )
+        return self.make_request(url)
+
+    def log_sleep(self, start_time, duration):
+        """
+        https://wiki.fitbit.com/display/API/API-Log-Sleep
+        start time should be a datetime object. We will be using the year, month, day, hour, and minute.
+        """
+        data = {
+            'startTime': start_time.strftime("%H:%M"),
+            'duration': duration,
+            'date': start_time.strftime("%Y-%m-%d"),
+        }
+        url = "%s/%s/user/-/sleep" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+        )
+        return self.make_request(url, data=data, method="POST")
 
     def activities_list(self):
         """
