@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 import oauth2 as oauth
 import requests
-import urlparse
 import json
 import datetime
 import urllib
 
+from requests_oauthlib import OAuth1Session
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
                                HTTPServerError, HTTPConflict, HTTPNotFound)
@@ -133,16 +133,15 @@ class FitbitOauthClient(oauth.Client):
         from that and save them, then pass them as user_key and user_secret in future
         API calls to fitbit to get this user's data.
         """
-        request = oauth.Request.from_consumer_and_token(self._consumer, token, http_method='POST', http_url=self.access_token_url, parameters={'oauth_verifier': verifier})
-        body = "oauth_verifier=%s" % verifier
-        response = self._request('POST', self.access_token_url, data=body,
-                                 headers=request.to_header())
+        client = OAuth1Session(self._consumer.key, client_secret=self._consumer.secret, resource_owner_key=token.key, resource_owner_secret=token.secret, verifier=verifier)
+        response = client.fetch_access_token(self.access_token_url)
+
         if response.status_code != 200:
-            # TODO custom exceptions
             raise Exception("Invalid response %s." % response.content)
-        params = urlparse.parse_qs(response.content, keep_blank_values=False)
-        self.user_id = params['encoded_user_id'][0]
-        self._token = oauth.Token.from_string(response.content)
+        self.user_id = response['encoded_user_id']
+        self._token = oauth.Token(
+            key=response['oauth_token'],
+            secret=response['oauth_token_secret'])
         return self._token
 
 
@@ -621,7 +620,7 @@ class Fitbit(object):
         Convenience method for respond_to_invite
         """
         return self.respond_to_invite(other_user_id, accept=False)
-        
+
     def get_badges(self, user_id=None):
         """
         https://wiki.fitbit.com/display/API/API-Get-Badges
@@ -634,7 +633,7 @@ class Fitbit(object):
             user_id
         )
         return self.make_request(url)
-      
+
     def subscription(self, subscription_id, subscriber_id, collection=None,
                      method='POST'):
         """
