@@ -133,7 +133,12 @@ class FitbitOauthClient(oauth.Client):
         from that and save them, then pass them as user_key and user_secret in future
         API calls to fitbit to get this user's data.
         """
-        client = OAuth1Session(self._consumer.key, client_secret=self._consumer.secret, resource_owner_key=token.key, resource_owner_secret=token.secret, verifier=verifier)
+        client = OAuth1Session(
+            self._consumer.key,
+            client_secret=self._consumer.secret,
+            resource_owner_key=token.key,
+            resource_owner_secret=token.secret,
+            verifier=verifier)
         response = client.fetch_access_token(self.access_token_url)
 
         if response.status_code != 200:
