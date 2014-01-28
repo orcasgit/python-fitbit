@@ -141,8 +141,6 @@ class FitbitOauthClient(oauth.Client):
             verifier=verifier)
         response = client.fetch_access_token(self.access_token_url)
 
-        if response.status_code != 200:
-            raise Exception("Invalid response %s." % response.content)
         self.user_id = response['encoded_user_id']
         self._token = oauth.Token(
             key=response['oauth_token'],
