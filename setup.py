@@ -26,7 +26,7 @@ setup(
     include_package_data=True,
     install_requires=["distribute"] + required,
     license='Apache 2.0',
-    test_suite='tests.all_tests',
+    test_suite='fitbit_tests.all_tests',
     tests_require=required_dev,
     classifiers=(
         'Intended Audience :: Developers',

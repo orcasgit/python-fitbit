@@ -65,57 +65,24 @@ class AuthTest(TestCase):
 
     def test_fetch_access_token(self):
         fb = Fitbit(**self.client_kwargs)
-        fake_token = "FAKETOKEN"
+        fake_token = mock.Mock(key="FAKEKEY", secret="FAKESECRET")
         fake_verifier = "FAKEVERIFIER"
-        with mock.patch.object(oauth.Request, 'from_consumer_and_token') as from_consumer_and_token:
-            mock_request = mock.Mock()
-            mock_request.to_header.return_value = "FAKEHEADERS"
-            from_consumer_and_token.return_value = mock_request
-            with mock.patch('fitbit.api.FitbitOauthClient._request') as _request:
-                fake_response = mock.Mock()
-                fake_response.content = "FAKECONTENT"
-                fake_response.status_code = 200
-                _request.return_value = fake_response
-                with mock.patch.object(oauth.Token, 'from_string') as from_string:
-                    from_string.return_value = "FAKERETURNVALUE"
-                    with mock.patch('fitbit.api.urlparse') as urlparse:
-                        urlparse.parse_qs.return_value = {'encoded_user_id':['foo']}
-                        retval = fb.client.fetch_access_token(fake_token, fake_verifier)
-        self.assertEqual("FAKERETURNVALUE", retval)
-        self.assertEqual('foo', fb.client.user_id)
-        expected_args = (fb.client._consumer, fake_token)
-        expected_kwargs = {'http_url': fb.client.access_token_url,
-                           'http_method': 'POST',
-                           'parameters':{'oauth_verifier': fake_verifier}}
-        self.assertEqual(expected_args, from_consumer_and_token.call_args[0])
-        self.assertEqual(expected_kwargs, from_consumer_and_token.call_args[1])
-        expected_args = ('POST', fb.client.access_token_url)
-        expected_kwargs = {'data': "oauth_verifier=%s" % fake_verifier,
-                           'headers': "FAKEHEADERS"}
-        self.assertEqual(expected_args, _request.call_args[0])
-        self.assertEqual(expected_kwargs, _request.call_args[1])
-        expected_args = ("FAKECONTENT",)
-        expected_kwargs = {}
-        self.assertEqual(expected_args, from_string.call_args[0])
-        self.assertEqual(expected_kwargs, from_string.call_args[1])
+        with mock.patch('requests_oauthlib.OAuth1Session.fetch_access_token') as fetch_access_token:
+            fetch_access_token.return_value = {
+            'encoded_user_id': 'FAKEUSERID',
+            'oauth_token': 'FAKERETURNEDKEY',
+            'oauth_token_secret': 'FAKERETURNEDSECRET'
+            }
+            retval = fb.client.fetch_access_token(fake_token, fake_verifier)
+        self.assertEqual("FAKERETURNEDKEY", retval.key)
+        self.assertEqual("FAKERETURNEDSECRET", retval.secret)
+        self.assertEqual('FAKEUSERID', fb.client.user_id)
 
     def test_fetch_access_token_error(self):
         fb = Fitbit(**self.client_kwargs)
-        fake_token = "FAKETOKEN"
-        fake_verifier = "FAKEVERIFIER"
-        with mock.patch.object(oauth.Request, 'from_consumer_and_token') as from_consumer_and_token:
-            mock_request = mock.Mock()
-            mock_request.to_header.return_value = "FAKEHEADERS"
-            from_consumer_and_token.return_value = mock_request
-            with mock.patch('fitbit.api.FitbitOauthClient._request') as _request:
-                fake_response = mock.Mock()
-                fake_response.content = "FAKECONTENT"
-                fake_response.status_code = 999
-                _request.return_value = fake_response
-                with mock.patch.object(oauth.Token, 'from_string') as from_string:
-                    from_string.return_value = "FAKERETURNVALUE"
-                    with mock.patch('fitbit.api.urlparse') as urlparse:
-                        urlparse.parse_qs.return_value = {'encoded_user_id':['foo']}
-                        self.assertRaises(Exception,
-                            fb.client.fetch_access_token,
-                            fake_token, fake_verifier)
+        with mock.patch('requests.sessions.Session.post') as post:
+            post.return_value = mock.Mock(text="not a url encoded string")
+            fake_token = mock.Mock(key="FAKEKEY", secret="FAKESECRET")
+            self.assertRaises(ValueError,
+                fb.client.fetch_access_token,
+                fake_token, "fake_verifier")
