@@ -20,3 +20,5 @@ __license__ = 'Apache 2.0'
 __version__ = '0.0.2'
 
 # Module namespace.
+
+all_tests = []
