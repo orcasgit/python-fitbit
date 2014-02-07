@@ -53,11 +53,13 @@ class FitbitOauthClient(oauth.Client):
         """
         if not method:
             method = 'POST' if data else 'GET'
+        headers = kwargs.pop('headers', {})
         request = oauth.Request.from_consumer_and_token(self._consumer, self._token, http_method=method, http_url=url, parameters=data)
         request.sign_request(self._signature_method, self._consumer,
                              self._token)
+        headers.update(request.to_header())
         response = self._request(method, url, data=data,
-                                 headers=request.to_header())
+                                 headers=headers)
 
         if response.status_code == 401:
             raise HTTPUnauthorized(response)
