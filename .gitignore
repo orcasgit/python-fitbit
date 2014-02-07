@@ -6,3 +6,6 @@ docs/_build
 *.egg
 dist
 build
+
+# Editors
+.idea
