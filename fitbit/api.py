@@ -434,6 +434,15 @@ class Fitbit(object):
         )
         return self.make_request(url, method='POST')
 
+    def log_activity(self, data):
+        """
+        https://wiki.fitbit.com/display/API/API-Log-Activity
+        """
+        url = "%s/%s/user/-/activities.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION)
+        return self.make_request(url, data = data)
+
     def delete_favorite_activity(self, activity_id):
         """
         https://wiki.fitbit.com/display/API/API-Delete-Favorite-Activity
