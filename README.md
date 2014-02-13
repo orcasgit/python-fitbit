@@ -10,4 +10,4 @@ For documentation: [http://python-fitbit.readthedocs.org/](http://python-fitbit.
 Requirements
 ============
 
-* Python 2.6+  
+* Python 2.6+ and PyPy 2.2.1
