@@ -4,4 +4,6 @@ python:
   - 2.6
   - 2.7
 
-script: python setup.py test
+install: pip install coveralls
+script: coverage run --source=fitbit setup.py test
+after_success: coveralls
