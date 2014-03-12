@@ -8,7 +8,7 @@ Overview
 
 This is a complete python implementation of the Fitbit API.
 
-It uses oAuath for authentication, it supports both us and si
+It uses oAuth for authentication, it supports both us and si
 measurements
 
 Quickstart
