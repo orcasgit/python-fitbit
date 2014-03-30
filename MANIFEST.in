@@ -1,1 +1,1 @@
-include LICENSE AUTHORS README.rst requirements* docs/*
+include LICENSE AUTHORS README.md requirements* docs/*
