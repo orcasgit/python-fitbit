@@ -686,6 +686,118 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
+    def get_bodyweight(self, base_date=None, user_id=None, period=None, end_date=None):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Body-Weight
+        base_date should be a datetime.date object (defaults to today),
+        period can be '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max' or None
+        end_date should be a datetime.date object, or None.
+
+        You can specify period or end_date, or neither, but not both.
+        """
+        if not base_date:
+            base_date = datetime.date.today()
+
+        if not user_id:
+            user_id = '-'
+
+        if period and end_date:
+            raise TypeError("Either end_date or period can be specified, not both")
+
+        if not isinstance(base_date, basestring):
+            base_date_string = base_date.strftime('%Y-%m-%d')
+        else:
+            base_date_string = base_date
+
+        if period:
+            if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
+                raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
+
+            url = "%s/%s/user/%s/body/log/weight/date/%s/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+                period
+            )
+        elif end_date:
+            if not isinstance(end_date, basestring):
+                end_string = end_date.strftime('%Y-%m-%d')
+            else:
+                end_string = end_date
+
+            url = "%s/%s/user/%s/body/log/weight/date/%s/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+                end_string
+            )
+        else:
+            url = "%s/%s/user/%s/body/log/weight/date/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+            )
+        return self.make_request(url)
+
+    def get_bodyfat(self, base_date=None, user_id=None, period=None, end_date=None):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Body-fat
+        base_date should be a datetime.date object (defaults to today),
+        period can be '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max' or None
+        end_date should be a datetime.date object, or None.
+
+        You can specify period or end_date, or neither, but not both.
+        """
+        if not base_date:
+            base_date = datetime.date.today()
+
+        if not user_id:
+            user_id = '-'
+
+        if period and end_date:
+            raise TypeError("Either end_date or period can be specified, not both")
+
+        if not isinstance(base_date, basestring):
+            base_date_string = base_date.strftime('%Y-%m-%d')
+        else:
+            base_date_string = base_date
+
+        if period:
+            if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
+                raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
+
+            url = "%s/%s/user/%s/body/log/fat/date/%s/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+                period
+            )
+        elif end_date:
+            if not isinstance(end_date, basestring):
+                end_string = end_date.strftime('%Y-%m-%d')
+            else:
+                end_string = end_date
+
+            url = "%s/%s/user/%s/body/log/fat/date/%s/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+                end_string
+            )
+        else:
+            url = "%s/%s/user/%s/body/log/fat/date/%s.json" % (
+                self.API_ENDPOINT,
+                self.API_VERSION,
+                user_id,
+                base_date_string,
+            )
+        return self.make_request(url)
+
     def get_friends(self, user_id=None):
         """
         https://wiki.fitbit.com/display/API/API-Get-Friends

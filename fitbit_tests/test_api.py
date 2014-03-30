@@ -292,6 +292,50 @@ class MiscTest(TestBase):
         url = "%s/%s/activities/FOOBAR.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activity_detail', ("FOOBAR",), {}, (url,), {})
 
+    def test_bodyweight(self):
+        def test_get_bodyweight(fb, base_date=None, user_id=None, period=None, end_date=None, expected_url=None):
+            with mock.patch.object(fb, 'make_request') as make_request:
+                fb.get_bodyweight(base_date, user_id=user_id, period=period, end_date=end_date)
+            args, kwargs = make_request.call_args
+            self.assertEqual((expected_url,), args)
+
+        user_id = 'BAR'
+
+        # No end_date or period
+        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/weight/date/1992-05-12.json")
+        # With end_date
+        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None, end_date=datetime.date(1998, 12, 31),
+            expected_url=URLBASE + "/BAR/body/log/weight/date/1992-05-12/1998-12-31.json")
+        # With period
+        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d", end_date=None,
+            expected_url=URLBASE + "/BAR/body/log/weight/date/1992-05-12/1d.json")
+        # Date defaults to today
+        test_get_bodyweight(self.fb, base_date=None, user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/weight/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'))
+
+    def test_bodyfat(self):
+        def test_get_bodyfat(fb, base_date=None, user_id=None, period=None, end_date=None, expected_url=None):
+            with mock.patch.object(fb, 'make_request') as make_request:
+                fb.get_bodyfat(base_date, user_id=user_id, period=period, end_date=end_date)
+            args, kwargs = make_request.call_args
+            self.assertEqual((expected_url,), args)
+
+        user_id = 'BAR'
+
+        # No end_date or period
+        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/fat/date/1992-05-12.json")
+        # With end_date
+        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None, end_date=datetime.date(1998, 12, 31),
+            expected_url=URLBASE + "/BAR/body/log/fat/date/1992-05-12/1998-12-31.json")
+        # With period
+        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d", end_date=None,
+            expected_url=URLBASE + "/BAR/body/log/fat/date/1992-05-12/1d.json")
+        # Date defaults to today
+        test_get_bodyfat(self.fb, base_date=None, user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/fat/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'))
+
     def test_friends(self):
         url = URLBASE + "/-/friends.json"
         self.common_api_test('get_friends', (), {}, (url,), {})
