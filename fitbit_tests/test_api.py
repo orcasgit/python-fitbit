@@ -9,7 +9,7 @@ URLBASE = "%s/%s/user" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
 
 class TestBase(TestCase):
     def setUp(self):
-        self.fb = Fitbit(consumer_key='x', consumer_secret='y')
+        self.fb = Fitbit('x', 'y')
 
     def common_api_test(self, funcname, args, kwargs, expected_args, expected_kwargs):
         # Create a fitbit object, call the named function on it with the given
@@ -155,7 +155,7 @@ class CollectionResourceTest(TestBase):
         # since the __init__ is going to set up references to it
         with mock.patch('fitbit.api.Fitbit._COLLECTION_RESOURCE') as coll_resource:
             coll_resource.return_value = 999
-            fb = Fitbit(consumer_key='x', consumer_secret='y')
+            fb = Fitbit('x', 'y')
             retval = fb.body(date=1, user_id=2, data=3)
         args, kwargs = coll_resource.call_args
         self.assertEqual(('body',), args)
@@ -181,7 +181,7 @@ class DeleteCollectionResourceTest(TestBase):
         # since the __init__ is going to set up references to it
         with mock.patch('fitbit.api.Fitbit._DELETE_COLLECTION_RESOURCE') as delete_resource:
             delete_resource.return_value = 999
-            fb = Fitbit(consumer_key='x', consumer_secret='y')
+            fb = Fitbit('x', 'y')
             retval = fb.delete_water(log_id=log_id)
         args, kwargs = delete_resource.call_args
         self.assertEqual(('water',), args)
@@ -193,7 +193,7 @@ class MiscTest(TestBase):
     def test_recent_activities(self):
         user_id = "LukeSkywalker"
         with mock.patch('fitbit.api.Fitbit.activity_stats') as act_stats:
-            fb = Fitbit(consumer_key='x', consumer_secret='y')
+            fb = Fitbit('x', 'y')
             retval = fb.recent_activities(user_id=user_id)
         args, kwargs = act_stats.call_args
         self.assertEqual((), args)
