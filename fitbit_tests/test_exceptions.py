@@ -9,12 +9,11 @@ class ExceptionTest(unittest.TestCase):
     Tests that certain response codes raise certain exceptions
     """
     client_kwargs = {
-        "consumer_key": "",
-        "consumer_secret": "",
+        "client_key": "",
+        "client_secret": "",
         "user_key": None,
         "user_secret": None,
     }
-
 
     def test_response_ok(self):
         """

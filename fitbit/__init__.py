@@ -7,7 +7,7 @@ Fitbit API Library
 :license: BSD, see LICENSE for more details.
 """
 
-from .api import Fitbit, FitbitConsumer, FitbitOauthClient
+from .api import Fitbit, FitbitOauthClient
 
 # Meta.
 

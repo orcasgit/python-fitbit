@@ -31,67 +31,51 @@ Instead, you'll want to create your own subclass of OAuthClient
 or find one that works with your web framework.
 """
 
-from api import FitbitOauthClient
-import time
-import oauth2 as oauth
+import os
+import pprint
+import sys
 import urlparse
-import platform
-import subprocess
+import webbrowser
 
+
+from api import FitbitOauthClient
 
 
 def gather_keys():
     # setup
-    print '** OAuth Python Library Example **'
-    client = FitbitOauthClient(CONSUMER_KEY, CONSUMER_SECRET)
-
-    print ''
+    pp = pprint.PrettyPrinter(indent=4)
+    print('** OAuth Python Library Example **\n')
+    client = FitbitOauthClient(CLIENT_KEY, CLIENT_SECRET)
 
     # get request token
-    print '* Obtain a request token ...'
-    print ''
+    print('* Obtain a request token ...\n')
     token = client.fetch_request_token()
-    print 'FROM RESPONSE'
-    print 'key: %s' % str(token.key)
-    print 'secret: %s' % str(token.secret)
-    print 'callback confirmed? %s' % str(token.callback_confirmed)
-    print ''
+    print('RESPONSE')
+    pp.pprint(token)
+    print('')
 
-    print '* Authorize the request token in your browser'
-    print ''
-    if platform.mac_ver():
-        subprocess.Popen(['open', client.authorize_token_url(token)])
-    else:
-        print 'open: %s' % client.authorize_token_url(token)
-    print ''
+    print('* Authorize the request token in your browser\n')
+    stderr = os.dup(2)
+    os.close(2)
+    os.open(os.devnull, os.O_RDWR)
+    webbrowser.open(client.authorize_token_url())
+    os.dup2(stderr, 2)
     verifier = raw_input('Verifier: ')
-    print verifier
-    print ''
 
     # get access token
-    print '* Obtain an access token ...'
-    print ''
-    print 'REQUEST (via headers)'
-    print ''
-    token = client.fetch_access_token(token, verifier)
-    print 'FROM RESPONSE'
-    print 'key: %s' % str(token.key)
-    print 'secret: %s' % str(token.secret)
-    print ''
+    print('\n* Obtain an access token ...\n')
+    token = client.fetch_access_token(verifier)
+    print('RESPONSE')
+    pp.pprint(token)
+    print('')
 
-
-def pause():
-    print ''
-    time.sleep(1)
 
 if __name__ == '__main__':
-    import sys
-
     if not (len(sys.argv) == 3):
         print "Arguments 'client key', 'client secret' are required"
         sys.exit(1)
-    CONSUMER_KEY = sys.argv[1]
-    CONSUMER_SECRET = sys.argv[2]
+    CLIENT_KEY = sys.argv[1]
+    CLIENT_SECRET = sys.argv[2]
 
     gather_keys()
     print 'Done.'
