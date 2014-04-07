@@ -38,7 +38,7 @@ import urlparse
 import webbrowser
 
 
-from api import FitbitOauthClient
+from fitbit.api import FitbitOauthClient
 
 
 def gather_keys():
