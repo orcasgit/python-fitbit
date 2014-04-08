@@ -1,4 +1,0 @@
--r requirements.txt
--r requirements_test.txt
-
-Sphinx==1.2.2

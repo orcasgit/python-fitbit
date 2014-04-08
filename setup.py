@@ -5,8 +5,8 @@ import re
 
 from setuptools import setup
 
-required = [line for line in open('requirements.txt').read().split("\n")]
-required_dev = [line for line in open('requirements_dev.txt').read().split("\n") if not line.startswith("-r")]
+required = [line for line in open('requirements/base.txt').read().split("\n")]
+required_test = [line for line in open('requirements/test.txt').read().split("\n") if not line.startswith("-r")]
 
 fbinit = open('fitbit/__init__.py').read()
 author = re.search("__author__ = '([^']+)'", fbinit).group(1)
@@ -27,7 +27,7 @@ setup(
     install_requires=["distribute"] + required,
     license='Apache 2.0',
     test_suite='fitbit_tests.all_tests',
-    tests_require=required_dev,
+    tests_require=required_test,
     classifiers=(
         'Intended Audience :: Developers',
         'Natural Language :: English',
