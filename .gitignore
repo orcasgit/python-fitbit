@@ -8,6 +8,7 @@ docs/_build
 *.egg
 dist
 build
+env
 
 # Editors
 .idea
