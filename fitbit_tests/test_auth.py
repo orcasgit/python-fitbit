@@ -22,9 +22,9 @@ class AuthTest(TestCase):
         fb = Fitbit(**self.client_kwargs)
         with mock.patch.object(OAuth1Session, 'fetch_request_token') as frt:
             frt.return_value = {
-                u'oauth_callback_confirmed': u'true',
-                u'oauth_token': u'FAKE_OAUTH_TOKEN',
-                u'oauth_token_secret': u'FAKE_OAUTH_TOKEN_SECRET'}
+                'oauth_callback_confirmed': 'true',
+                'oauth_token': 'FAKE_OAUTH_TOKEN',
+                'oauth_token_secret': 'FAKE_OAUTH_TOKEN_SECRET'}
             retval = fb.client.fetch_request_token()
             self.assertEqual(1, frt.call_count)
             # Got the right return value

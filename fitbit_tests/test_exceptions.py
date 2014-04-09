@@ -23,7 +23,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 200
-        r.content = '{"normal": "resource"}'
+        r.content = b'{"normal": "resource"}'
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -43,7 +43,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 401
-        r.content = "{'normal': 'resource'}"
+        r.content = b"{'normal': 'resource'}"
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -59,7 +59,7 @@ class ExceptionTest(unittest.TestCase):
         Tests other HTTP errors
         """
         r = mock.Mock(spec=requests.Response)
-        r.content = "{'normal': 'resource'}"
+        r.content = b"{'normal': 'resource'}"
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -83,7 +83,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 200
-        r.content = "iyam not jason"
+        r.content = b"iyam not jason"
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -95,7 +95,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 201
-        r.content = '{"it\'s all": "ok"}'
+        r.content = b'{"it\'s all": "ok"}'
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r

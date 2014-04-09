@@ -33,7 +33,7 @@ class APITest(TestBase):
         KWARGS = { 'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.SYSTEM}}
         mock_response = mock.Mock()
         mock_response.status_code = 200
-        mock_response.content = "1"
+        mock_response.content = b"1"
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)

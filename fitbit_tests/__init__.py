@@ -1,7 +1,7 @@
 import unittest
-from test_exceptions import ExceptionTest
-from test_auth import AuthTest
-from fitbit_tests.test_api import APITest, CollectionResourceTest, DeleteCollectionResourceTest, MiscTest
+from .test_exceptions import ExceptionTest
+from .test_auth import AuthTest
+from .test_api import APITest, CollectionResourceTest, DeleteCollectionResourceTest, MiscTest
 
 
 def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=None):

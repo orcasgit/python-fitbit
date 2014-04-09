@@ -2,7 +2,12 @@
 import requests
 import json
 import datetime
-import urllib
+
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    # Python 2.x
+    from urllib import urlencode
 
 from requests_oauthlib import OAuth1, OAuth1Session
 
@@ -192,7 +197,7 @@ class Fitbit(object):
             else:
                 raise DeleteError(response)
         try:
-            rep = json.loads(response.content)
+            rep = json.loads(response.content.decode('utf8'))
         except ValueError:
             raise BadResponse
 
@@ -259,7 +264,7 @@ class Fitbit(object):
             date = datetime.date.today()
         if not user_id:
             user_id = '-'
-        if not isinstance(date, basestring):
+        if not isinstance(date, str):
             date = date.strftime('%Y-%m-%d')
 
         if not data:
@@ -327,7 +332,7 @@ class Fitbit(object):
             raise TypeError("Either end_date or period can be specified, not both")
 
         if end_date:
-            if not isinstance(end_date, basestring):
+            if not isinstance(end_date, str):
                 end = end_date.strftime('%Y-%m-%d')
             else:
                 end = end_date
@@ -336,7 +341,7 @@ class Fitbit(object):
                 raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
             end = period
 
-        if not isinstance(base_date, basestring):
+        if not isinstance(base_date, str):
             base_date = base_date.strftime('%Y-%m-%d')
 
         url = "%s/%s/user/%s/%s/date/%s/%s.json" % (
@@ -640,7 +645,7 @@ class Fitbit(object):
         url = "%s/%s/foods/search.json?%s" % (
             self.API_ENDPOINT,
             self.API_VERSION,
-            urllib.urlencode({'query': query})
+            urlencode({'query': query})
         )
         return self.make_request(url)
 
@@ -683,7 +688,7 @@ class Fitbit(object):
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
 
-        if not isinstance(base_date, basestring):
+        if not isinstance(base_date, str):
             base_date_string = base_date.strftime('%Y-%m-%d')
         else:
             base_date_string = base_date
@@ -700,7 +705,7 @@ class Fitbit(object):
                 period
             )
         elif end_date:
-            if not isinstance(end_date, basestring):
+            if not isinstance(end_date, str):
                 end_string = end_date.strftime('%Y-%m-%d')
             else:
                 end_string = end_date
@@ -739,7 +744,7 @@ class Fitbit(object):
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
 
-        if not isinstance(base_date, basestring):
+        if not isinstance(base_date, str):
             base_date_string = base_date.strftime('%Y-%m-%d')
         else:
             base_date_string = base_date
@@ -756,7 +761,7 @@ class Fitbit(object):
                 period
             )
         elif end_date:
-            if not isinstance(end_date, basestring):
+            if not isinstance(end_date, str):
                 end_string = end_date.strftime('%Y-%m-%d')
             else:
                 end_string = end_date

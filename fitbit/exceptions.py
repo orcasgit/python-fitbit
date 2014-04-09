@@ -15,10 +15,13 @@ class DeleteError(Exception):
 class HTTPException(Exception):
     def __init__(self, response, *args, **kwargs):
         try:
-            errors = json.loads(response.content)['errors']
+            errors = json.loads(response.content.decode('utf8'))['errors']
             message = '\n'.join([error['message'] for error in errors])
         except Exception:
-            message = response
+            if response.status_code == 401:
+                message = response.content.decode('utf8')
+            else:
+                message = response
         super(HTTPException, self).__init__(message, *args, **kwargs)
 
 class HTTPBadRequest(HTTPException):

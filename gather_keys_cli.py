@@ -34,9 +34,7 @@ or find one that works with your web framework.
 import os
 import pprint
 import sys
-import urlparse
 import webbrowser
-
 
 from fitbit.api import FitbitOauthClient
 
@@ -60,7 +58,11 @@ def gather_keys():
     os.open(os.devnull, os.O_RDWR)
     webbrowser.open(client.authorize_token_url())
     os.dup2(stderr, 2)
-    verifier = raw_input('Verifier: ')
+    try:
+        verifier = raw_input('Verifier: ')
+    except NameError:
+        # Python 3.x
+        verifier = input('Verifier: ')
 
     # get access token
     print('\n* Obtain an access token ...\n')
@@ -72,10 +74,10 @@ def gather_keys():
 
 if __name__ == '__main__':
     if not (len(sys.argv) == 3):
-        print "Arguments 'client key', 'client secret' are required"
+        print("Arguments 'client key', 'client secret' are required")
         sys.exit(1)
     CLIENT_KEY = sys.argv[1]
     CLIENT_SECRET = sys.argv[2]
 
     gather_keys()
-    print 'Done.'
+    print('Done.')
