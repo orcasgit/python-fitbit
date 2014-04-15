@@ -17,7 +17,7 @@ __author_email__ = 'bpitcher@orcasinc.com'
 __copyright__ = 'Copyright 2012 ORCAS'
 __license__ = 'Apache 2.0'
 
-__version__ = '0.0.5'
+__version__ = '0.1.0'
 
 # Module namespace.
 
