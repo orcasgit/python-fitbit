@@ -22,7 +22,7 @@ Here is some example usage::
     unauth_client.activities()
 
     # You'll have to gather the user keys on your own, or try ./fitbit/gather_keys_cli.py <con_key> <con_sec> for development
-    authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>', user_key='<user_key>', user_secret='<user_secret>')
+    authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>', resource_owner_key='<user_key>', resource_owner_secret='<user_secret>')
     authd_client.sleep()
 
 Fitbit API
