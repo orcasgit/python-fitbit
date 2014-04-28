@@ -17,7 +17,7 @@ setup(
     name='fitbit',
     version=version,
     description='Fitbit API Wrapper.',
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
     author=author,
     author_email=author_email,
     url='https://github.com/orcasgit/python-fitbit',
