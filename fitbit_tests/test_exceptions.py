@@ -76,6 +76,19 @@ class ExceptionTest(unittest.TestCase):
         r.status_code = 499
         self.assertRaises(exceptions.HTTPBadRequest, f.user_profile_get)
 
+    def test_too_many_requests(self):
+        """
+        Tests the 429 response, given in case of exceeding the rate limit
+        """
+        r = mock.Mock(spec=requests.Response)
+        r.content = b"{'normal': 'resource'}"
+        r.headers = {'Retry-After': 10}
+
+        f = Fitbit(**self.client_kwargs)
+        f.client._request = lambda *args, **kwargs: r
+
+        r.status_code = 429
+        self.assertRaises(exceptions.HTTPTooManyRequests, f.user_profile_get)
 
     def test_serialization(self):
         """

@@ -1,16 +1,19 @@
 import json
 
+
 class BadResponse(Exception):
     """
     Currently used if the response can't be json encoded, despite a .json extension
     """
     pass
 
+
 class DeleteError(Exception):
     """
     Used when a delete request did not return a 204
     """
     pass
+
 
 class HTTPException(Exception):
     def __init__(self, response, *args, **kwargs):
@@ -24,28 +27,44 @@ class HTTPException(Exception):
                 message = response
         super(HTTPException, self).__init__(message, *args, **kwargs)
 
+
 class HTTPBadRequest(HTTPException):
+    """Generic >= 400 error
+    """
     pass
 
 
 class HTTPUnauthorized(HTTPException):
+    """401
+    """
     pass
 
 
 class HTTPForbidden(HTTPException):
-    pass
-
-
-class HTTPServerError(HTTPException):
-    pass
-
-
-class HTTPConflict(HTTPException):
-    """
-    Used by Fitbit as rate limiter
+    """403
     """
     pass
 
 
 class HTTPNotFound(HTTPException):
+    """404
+    """
+    pass
+
+
+class HTTPConflict(HTTPException):
+    """409 - returned when creating conflicting resources
+    """
+    pass
+
+
+class HTTPTooManyRequests(HTTPException):
+    """429 - returned when exceeding rate limits
+    """
+    pass
+
+
+class HTTPServerError(HTTPException):
+    """Generic >= 500 error
+    """
     pass

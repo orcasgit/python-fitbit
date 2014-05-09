@@ -13,7 +13,8 @@ from requests_oauthlib import OAuth1, OAuth1Session
 
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
-                               HTTPServerError, HTTPConflict, HTTPNotFound)
+                               HTTPServerError, HTTPConflict, HTTPNotFound,
+                               HTTPTooManyRequests)
 from fitbit.utils import curry
 
 
@@ -83,6 +84,11 @@ class FitbitOauthClient(object):
             raise HTTPNotFound(response)
         elif response.status_code == 409:
             raise HTTPConflict(response)
+        elif response.status_code == 429:
+            exc = HTTPTooManyRequests(response)
+            exc.retry_after_secs = response.headers['Retry-After']
+            raise exc
+
         elif response.status_code >= 500:
             raise HTTPServerError(response)
         elif response.status_code >= 400:
