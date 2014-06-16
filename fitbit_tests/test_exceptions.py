@@ -82,13 +82,15 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.content = b"{'normal': 'resource'}"
-        r.headers = {'Retry-After': 10}
+        r.headers = {'Retry-After': '10'}
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
 
         r.status_code = 429
-        self.assertRaises(exceptions.HTTPTooManyRequests, f.user_profile_get)
+        with self.assertRaises(exceptions.HTTPTooManyRequests) as exc_ctx:
+            f.user_profile_get()
+        self.assertEqual(exc_ctx.exception.retry_after_secs, 10)
 
     def test_serialization(self):
         """
@@ -113,4 +115,3 @@ class ExceptionTest(unittest.TestCase):
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
         self.assertRaises(exceptions.DeleteError, f.delete_activities, 12345)
-

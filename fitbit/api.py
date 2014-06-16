@@ -86,7 +86,7 @@ class FitbitOauthClient(object):
             raise HTTPConflict(response)
         elif response.status_code == 429:
             exc = HTTPTooManyRequests(response)
-            exc.retry_after_secs = response.headers['Retry-After']
+            exc.retry_after_secs = int(response.headers['Retry-After'])
             raise exc
 
         elif response.status_code >= 500:
