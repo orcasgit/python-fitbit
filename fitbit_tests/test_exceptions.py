@@ -1,6 +1,7 @@
 import unittest
 import mock
 import requests
+import sys
 from fitbit import Fitbit
 from fitbit import exceptions
 
@@ -88,9 +89,12 @@ class ExceptionTest(unittest.TestCase):
         f.client._request = lambda *args, **kwargs: r
 
         r.status_code = 429
-        with self.assertRaises(exceptions.HTTPTooManyRequests) as exc_ctx:
+        try:
             f.user_profile_get()
-        self.assertEqual(exc_ctx.exception.retry_after_secs, 10)
+            self.assertEqual(True, False)  # Won't run if an exception's raised
+        except exceptions.HTTPTooManyRequests:
+            e = sys.exc_info()[1]
+            self.assertEqual(e.retry_after_secs, 10)
 
     def test_serialization(self):
         """
