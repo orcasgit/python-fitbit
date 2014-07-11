@@ -34,7 +34,7 @@ class FitbitOauthClient(object):
         Create a FitbitOauthClient object. Specify the first 5 parameters if
         you have them to access user data. Specify just the first 2 parameters
         to access anonymous data and start the set up for user authorization.
-        
+
         Set callback_uri to a URL and when the user has granted us access at
         the fitbit site, fitbit will redirect them to the URL you passed.  This
         is how we get back the magic verifier string from fitbit if we're a web
@@ -113,7 +113,7 @@ class FitbitOauthClient(object):
         URL, open their browser to it, or tell them to copy the URL into their
         browser.
         """
-        
+
         return self.oauth.authorization_url(self.authorization_url)
 
     def fetch_access_token(self, verifier, token=None):
@@ -125,7 +125,7 @@ class FitbitOauthClient(object):
         if token:
             self.resource_owner_key = token.get('oauth_token')
             self.resource_owner_secret = token.get('oauth_token_secret')
-            
+
         self.oauth = OAuth1Session(
             self.client_key,
             client_secret=self.client_secret,
@@ -151,7 +151,7 @@ class Fitbit(object):
     _resource_list = [
         'body',
         'activities',
-        'foods',
+        'foods/log',
         'water',
         'sleep',
         'heart',
@@ -173,7 +173,8 @@ class Fitbit(object):
         # creating and deleting records once, and use curry to make individual
         # Methods for each
         for resource in self._resource_list:
-            setattr(self, resource, curry(self._COLLECTION_RESOURCE, resource))
+            setattr(self, resource.replace('/', '_'),
+                    curry(self._COLLECTION_RESOURCE, resource))
 
             if resource not in ['body', 'glucose']:
                 # Body and Glucose entries are not currently able to be deleted
@@ -257,7 +258,7 @@ class Fitbit(object):
 
             body(date=None, user_id=None, data=None)
             activities(date=None, user_id=None, data=None)
-            foods(date=None, user_id=None, data=None)
+            foods_log(date=None, user_id=None, data=None)
             water(date=None, user_id=None, data=None)
             sleep(date=None, user_id=None, data=None)
             heart(date=None, user_id=None, data=None)

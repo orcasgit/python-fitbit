@@ -254,12 +254,15 @@ class MiscTest(TestBase):
             expected_url=URLBASE + "/BAR/FOO/date/1992-05-12/1998-12-31.json")
 
     def test_foods(self):
+        today = datetime.date.today().strftime('%Y-%m-%d')
         self.common_api_test('recent_foods', ("USER_ID",), {}, (URLBASE+"/USER_ID/foods/log/recent.json",), {})
         self.common_api_test('favorite_foods', ("USER_ID",), {}, (URLBASE+"/USER_ID/foods/log/favorite.json",), {})
         self.common_api_test('frequent_foods', ("USER_ID",), {}, (URLBASE+"/USER_ID/foods/log/frequent.json",), {})
+        self.common_api_test('foods_log', (today, "USER_ID",), {}, ("%s/USER_ID/foods/log/date/%s.json" % (URLBASE, today), None), {})
         self.common_api_test('recent_foods', (), {}, (URLBASE+"/-/foods/log/recent.json",), {})
         self.common_api_test('favorite_foods', (), {}, (URLBASE+"/-/foods/log/favorite.json",), {})
         self.common_api_test('frequent_foods', (), {}, (URLBASE+"/-/foods/log/frequent.json",), {})
+        self.common_api_test('foods_log', (today,), {}, ("%s/-/foods/log/date/%s.json" % (URLBASE, today), None), {})
 
         url = URLBASE + "/-/foods/log/favorite/food_id.json"
         self.common_api_test('add_favorite_food', ('food_id',), {}, (url,), {'method': 'POST'})
