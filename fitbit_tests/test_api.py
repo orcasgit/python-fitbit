@@ -189,6 +189,10 @@ class DeleteCollectionResourceTest(TestBase):
         self.assertEqual(999, retval)
 
 class MiscTest(TestBase):
+    def test_activities(self):
+        user_id = "Qui-Gon Jinn"
+        self.common_api_test('activities', (), {}, (URLBASE + "/%s/activities/date/%s.json" % (user_id, datetime.date.today().strftime('%Y-%m-%d'),),), {})
+        self.common_api_test('activities', (), {}, (URLBASE + "/-/activities/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'),), {})
 
     def test_recent_activities(self):
         user_id = "LukeSkywalker"
