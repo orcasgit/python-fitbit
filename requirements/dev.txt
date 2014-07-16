@@ -2,4 +2,4 @@
 -r test.txt
 
 Sphinx==1.2.2
-tox==1.7.1
+tox==1.7.2
