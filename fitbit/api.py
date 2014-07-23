@@ -107,14 +107,15 @@ class FitbitOauthClient(object):
         self.resource_owner_secret = token.get('oauth_token_secret')
         return token
 
-    def authorize_token_url(self):
+    def authorize_token_url(self, **kwargs):
         """Step 2: Return the URL the user needs to go to in order to grant us
         authorization to look at their data.  Then redirect the user to that
         URL, open their browser to it, or tell them to copy the URL into their
-        browser.
+        browser.  Allow the client to request the mobile display by passing
+        the display='touch' argument.
         """
 
-        return self.oauth.authorization_url(self.authorization_url)
+        return self.oauth.authorization_url(self.authorization_url, **kwargs)
 
     def fetch_access_token(self, verifier, token=None):
         """Step 3: Given the verifier from fitbit, and optionally a token from
