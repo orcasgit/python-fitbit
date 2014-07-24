@@ -1,5 +1,5 @@
 from unittest import TestCase
-from fitbit import Fitbit
+from fitbit import Fitbit, FitbitOauthClient
 import mock
 from requests_oauthlib import OAuth1Session
 
@@ -41,6 +41,12 @@ class AuthTest(TestCase):
             retval = fb.client.authorize_token_url()
             self.assertEqual(1, au.call_count)
             self.assertEqual("FAKEURL", retval)
+
+    def test_authorize_token_url_with_parameters(self):
+        # authorize_token_url calls oauth and returns a URL
+        client = FitbitOauthClient(**self.client_kwargs)
+        retval = client.authorize_token_url(display="touch")
+        self.assertTrue("display=touch" in retval)
 
     def test_fetch_access_token(self):
         kwargs = self.client_kwargs
