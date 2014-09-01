@@ -1,5 +1,5 @@
 -r base.txt
 -r test.txt
 
-Sphinx==1.2.2
+Sphinx==1.2.3
 tox==1.7.2
