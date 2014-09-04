@@ -619,7 +619,7 @@ class Fitbit(object):
             'duration': duration,
             'date': start_time.strftime("%Y-%m-%d"),
         }
-        url = "%s/%s/user/-/sleep" % (
+        url = "%s/%s/user/-/sleep.json" % (
             self.API_ENDPOINT,
             self.API_VERSION,
         )
