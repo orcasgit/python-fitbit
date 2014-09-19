@@ -21,7 +21,7 @@ class HTTPException(Exception):
             errors = json.loads(response.content.decode('utf8'))['errors']
             message = '\n'.join([error['message'] for error in errors])
         except Exception:
-            if response.status_code == 401:
+            if hasattr(response, 'status_code') and response.status_code == 401:
                 message = response.content.decode('utf8')
             else:
                 message = response
