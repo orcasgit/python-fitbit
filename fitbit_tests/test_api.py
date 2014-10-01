@@ -257,6 +257,72 @@ class MiscTest(TestBase):
         test_timeseries(self.fb, resource, user_id=user_id, base_date=datetime.date(1992,5,12), period=None, end_date=end_date,
             expected_url=URLBASE + "/BAR/FOO/date/1992-05-12/1998-12-31.json")
 
+    def test_intraday_timeseries(self):
+        resource = 'FOO'
+        base_date = '1918-05-11'
+        end_date = '1988-02-15'
+
+        # detail_level must be valid
+        self.assertRaises(
+            ValueError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            end_date=None,
+            detail_level="xyz",
+            start_time=None,
+            end_time=None)
+
+        # provide end_time if start_time provided
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            end_date=None,
+            detail_level="1min",
+            start_time='12:55',
+            end_time=None)
+
+        # provide start_time if end_time provided
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            end_date=None,
+            detail_level="1min",
+            start_time=None,
+            end_time='12:55')
+
+        def test_intraday_timeseries(fb, resource, base_date, end_date, detail_level, start_time, end_time, expected_url):
+            with mock.patch.object(fb, 'make_request') as make_request:
+                retval = fb.intraday_time_series(resource, base_date, end_date, detail_level, start_time, end_time)
+            args, kwargs = make_request.call_args
+            self.assertEqual((expected_url,), args)
+
+        # Default
+        test_intraday_timeseries(self.fb, resource, base_date=base_date,
+                                 end_date=None, detail_level='1min', start_time=None, end_time=None,
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
+        # end_date can be a date object
+        test_intraday_timeseries(self.fb, resource, base_date=base_date,
+                                 end_date=datetime.date(1988, 2, 15), detail_level='15min', start_time=None, end_time=None,
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1988-02-15/15min.json")
+        # start_date can be a date object
+        test_intraday_timeseries(self.fb, resource, base_date=datetime.date(1918, 5, 11),
+                                 end_date=end_date, detail_level='1min', start_time=None, end_time=None,
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1988-02-15/1min.json")
+        # start_time can be a datetime object
+        test_intraday_timeseries(self.fb, resource, base_date=base_date,
+                                 end_date=end_date, detail_level='1min', start_time=datetime.time(3,56), end_time='15:07',
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1988-02-15/1min/03:56/15:07.json")
+        # end_time can be a datetime object
+        test_intraday_timeseries(self.fb, resource, base_date=base_date,
+                                 end_date=end_date, detail_level='1min', start_time='3:56', end_time=datetime.time(15,7),
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1988-02-15/1min/3:56/15:07.json")
+
+
     def test_foods(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
         self.common_api_test('recent_foods', ("USER_ID",), {}, (URLBASE+"/USER_ID/foods/log/recent.json",), {})
