@@ -362,12 +362,12 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
-    def intraday_time_series(self, resource, base_date='today', end_date=None, detail_level='1min', start_time=None, end_time=None):
+    def intraday_time_series(self, resource, base_date='today', detail_level='1min', start_time=None, end_time=None):
         """
         The intraday time series extends the functionality of the regular time series, but returning data at a
-        more granular level, defaulting to 1 minute intervals. To access this feature, one must send an email to api@fitbit.com
-        and request to have access to the Partner API (see https://wiki.fitbit.com/display/API/Fitbit+Partner+API). For details
-        on the resources available, see:
+        more granular level for a single day, defaulting to 1 minute intervals. To access this feature, one must
+        send an email to api@fitbit.com and request to have access to the Partner API
+        (see https://wiki.fitbit.com/display/API/Fitbit+Partner+API). For details on the resources available, see:
 
         https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
         """
@@ -378,26 +378,17 @@ class Fitbit(object):
         if end_time and not start_time:
             raise TypeError("You must provide a start time when you provide an end time")
 
-        if end_date:
-            if not isinstance(end_date, str):
-                date_fin = end_date.strftime('%Y-%m-%d')
-            else:
-                date_fin = end_date
-        else:
-            date_fin = '1d'
-
         if not isinstance(base_date, str):
             base_date = base_date.strftime('%Y-%m-%d')
 
         if not detail_level in ['1min', '15min']:
                 raise ValueError("Period must be either '1min' or '15min'")
 
-        url = "%s/%s/user/-/%s/date/%s/%s/%s" % (
+        url = "%s/%s/user/-/%s/date/%s/1d/%s" % (
             self.API_ENDPOINT,
             self.API_VERSION,
             resource,
             base_date,
-            date_fin,
             detail_level
         )
 
