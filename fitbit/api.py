@@ -43,6 +43,7 @@ class FitbitOauthClient(object):
         us and read it that way.
         """
 
+        self.session = requests.Session()
         self.client_key = client_key
         self.client_secret = client_secret
         self.resource_owner_key = resource_owner_key
@@ -61,7 +62,7 @@ class FitbitOauthClient(object):
         """
         A simple wrapper around requests.
         """
-        return requests.request(method, url, **kwargs)
+        return self.session.request(method, url, **kwargs)
 
     def make_request(self, url, data={}, method=None, **kwargs):
         """
