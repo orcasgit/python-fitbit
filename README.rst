@@ -26,7 +26,7 @@ Requirements
 * `coverage`_ (to create test coverage reports)
 
 .. _python-dateutil: https://pypi.python.org/pypi/python-dateutil/2.4.0
-.. _requests-oauthlib: https://pypi.python.org/pypi/requests-oauthlib)
+.. _requests-oauthlib: https://pypi.python.org/pypi/requests-oauthlib
 .. _Sphinx: https://pypi.python.org/pypi/Sphinx
 .. _tox: https://pypi.python.org/pypi/tox
 .. _coverage: https://pypi.python.org/pypi/coverage/
