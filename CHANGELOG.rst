@@ -1,3 +1,9 @@
+0.1.3 (2015-02-04)
+==================
+
+* Support Intraday Time Series API
+* Use connection pooling to avoid a TCP and SSL handshake for every API call
+
 0.1.2 (2014-09-19)
 ==================
 
