@@ -363,6 +363,52 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
+    def intraday_time_series(self, resource, base_date='today', detail_level='1min', start_time=None, end_time=None):
+        """
+        The intraday time series extends the functionality of the regular time series, but returning data at a
+        more granular level for a single day, defaulting to 1 minute intervals. To access this feature, one must
+        send an email to api@fitbit.com and request to have access to the Partner API
+        (see https://wiki.fitbit.com/display/API/Fitbit+Partner+API). For details on the resources available, see:
+
+        https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
+        """
+
+        if start_time and not end_time:
+            raise TypeError("You must provide an end time when you provide a start time")
+
+        if end_time and not start_time:
+            raise TypeError("You must provide a start time when you provide an end time")
+
+        if not isinstance(base_date, str):
+            base_date = base_date.strftime('%Y-%m-%d')
+
+        if not detail_level in ['1min', '15min']:
+                raise ValueError("Period must be either '1min' or '15min'")
+
+        url = "%s/%s/user/-/%s/date/%s/1d/%s" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            resource,
+            base_date,
+            detail_level
+        )
+
+        if start_time:
+            time_init = start_time
+            if not isinstance(time_init, str):
+                time_init = start_time.strftime('%H:%M')
+            url = url + ('/time/%s' % (time_init))
+
+        if end_time:
+            time_fin = end_time
+            if not isinstance(time_fin, str):
+                time_fin = time_fin.strftime('%H:%M')
+            url = url + ('/%s' % (time_fin))
+
+        url = url + '.json'
+
+        return self.make_request(url)
+
     def activity_stats(self, user_id=None, qualifier=''):
         """
         * https://wiki.fitbit.com/display/API/API-Get-Activity-Stats
