@@ -308,11 +308,11 @@ class MiscTest(TestBase):
         # start_time can be a datetime object
         test_intraday_timeseries(self.fb, resource, base_date=base_date,
                                  detail_level='1min', start_time=datetime.time(3,56), end_time='15:07',
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/03:56/15:07.json")
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
         # end_time can be a datetime object
         test_intraday_timeseries(self.fb, resource, base_date=base_date,
                                  detail_level='1min', start_time='3:56', end_time=datetime.time(15,7),
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/3:56/15:07.json")
+                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
 
 
     def test_foods(self):

@@ -396,7 +396,7 @@ class Fitbit(object):
             time_init = start_time
             if not isinstance(time_init, str):
                 time_init = start_time.strftime('%H:%M')
-            url = url + ('/%s' % (time_init))
+            url = url + ('/time/%s' % (time_init))
 
         if end_time:
             time_fin = end_time
