@@ -18,6 +18,7 @@ __copyright__ = 'Copyright 2012-2015 ORCAS'
 __license__ = 'Apache 2.0'
 
 __version__ = '0.1.3'
+__release__ = '0.1.3'
 
 # Module namespace.
 
