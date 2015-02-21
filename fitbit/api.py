@@ -154,7 +154,7 @@ class Fitbit(object):
         'body',
         'activities',
         'foods/log',
-        'water',
+        'foods/log/water',
         'sleep',
         'heart',
         'bp',
@@ -175,12 +175,13 @@ class Fitbit(object):
         # creating and deleting records once, and use curry to make individual
         # Methods for each
         for resource in self._resource_list:
-            setattr(self, resource.replace('/', '_'),
+            underscore_resource = resource.replace('/', '_')
+            setattr(self, underscore_resource,
                     curry(self._COLLECTION_RESOURCE, resource))
 
             if resource not in ['body', 'glucose']:
                 # Body and Glucose entries are not currently able to be deleted
-                setattr(self, 'delete_%s' % resource, curry(
+                setattr(self, 'delete_%s' % underscore_resource, curry(
                     self._DELETE_COLLECTION_RESOURCE, resource))
 
         for qualifier in self._qualifiers:
@@ -261,7 +262,7 @@ class Fitbit(object):
             body(date=None, user_id=None, data=None)
             activities(date=None, user_id=None, data=None)
             foods_log(date=None, user_id=None, data=None)
-            water(date=None, user_id=None, data=None)
+            foods_log_water(date=None, user_id=None, data=None)
             sleep(date=None, user_id=None, data=None)
             heart(date=None, user_id=None, data=None)
             bp(date=None, user_id=None, data=None)
@@ -306,8 +307,8 @@ class Fitbit(object):
 
             delete_body(log_id)
             delete_activities(log_id)
-            delete_foods(log_id)
-            delete_water(log_id)
+            delete_foods_log(log_id)
+            delete_foods_log_water(log_id)
             delete_sleep(log_id)
             delete_heart(log_id)
             delete_bp(log_id)

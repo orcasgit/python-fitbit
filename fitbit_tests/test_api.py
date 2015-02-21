@@ -176,15 +176,28 @@ class DeleteCollectionResourceTest(TestBase):
         self.assertFalse(hasattr(self.fb, 'delete_body'))
 
     def test_delete_water(self):
+        log_id = "fake_log_id"
+        # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
+        # since the __init__ is going to set up references to it
+        with mock.patch('fitbit.api.Fitbit._DELETE_COLLECTION_RESOURCE') as delete_resource:
+            delete_resource.return_value = 999
+            fb = Fitbit('x', 'y')
+            retval = fb.delete_foods_log(log_id=log_id)
+        args, kwargs = delete_resource.call_args
+        self.assertEqual(('foods/log',), args)
+        self.assertEqual({'log_id': log_id}, kwargs)
+        self.assertEqual(999, retval)
+
+    def test_delete_water(self):
         log_id = "OmarKhayyam"
         # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
         # since the __init__ is going to set up references to it
         with mock.patch('fitbit.api.Fitbit._DELETE_COLLECTION_RESOURCE') as delete_resource:
             delete_resource.return_value = 999
             fb = Fitbit('x', 'y')
-            retval = fb.delete_water(log_id=log_id)
+            retval = fb.delete_foods_log_water(log_id=log_id)
         args, kwargs = delete_resource.call_args
-        self.assertEqual(('water',), args)
+        self.assertEqual(('foods/log/water',), args)
         self.assertEqual({'log_id': log_id}, kwargs)
         self.assertEqual(999, retval)
 
