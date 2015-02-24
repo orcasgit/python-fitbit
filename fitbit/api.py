@@ -246,6 +246,13 @@ class Fitbit(object):
                                               self.API_VERSION)
         return self.make_request(url, data)
 
+    def _get_common_args(self, user_id=None):
+        common_args = (self.API_ENDPOINT, self.API_VERSION,)
+        if not user_id:
+            user_id = '-'
+        common_args += (user_id,)
+        return common_args
+
     def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None,
                              data=None):
         """
@@ -272,26 +279,20 @@ class Fitbit(object):
 
         if not date:
             date = datetime.date.today()
-        if not user_id:
-            user_id = '-'
         if not isinstance(date, str):
             date = date.strftime('%Y-%m-%d')
 
         if not data:
-            url = "%s/%s/user/%s/%s/date/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                resource,
-                date,
+            url = "{0}/{1}/user/{2}/{resource}/date/{date}.json".format(
+                *self._get_common_args(user_id),
+                resource=resource,
+                date=date
             )
         else:
             data['date'] = date
-            url = "%s/%s/user/%s/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                resource,
+            url = "{0}/{1}/user/{2}/{resource}.json".format(
+                *self._get_common_args(user_id),
+                resource=resource
             )
         return self.make_request(url, data)
 
@@ -314,11 +315,10 @@ class Fitbit(object):
             delete_bp(log_id)
 
         """
-        url = "%s/%s/user/-/%s/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            resource,
-            log_id,
+        url = "{0}/{1}/user/-/{resource}/{log_id}.json".format(
+            *self._get_common_args(),
+            resource=resource,
+            log_id=log_id
         )
         response = self.make_request(url, method='DELETE')
         return response
@@ -335,9 +335,6 @@ class Fitbit(object):
 
         https://wiki.fitbit.com/display/API/API-Get-Time-Series
         """
-        if not user_id:
-            user_id = '-'
-
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
 
@@ -354,13 +351,11 @@ class Fitbit(object):
         if not isinstance(base_date, str):
             base_date = base_date.strftime('%Y-%m-%d')
 
-        url = "%s/%s/user/%s/%s/date/%s/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            user_id,
-            resource,
-            base_date,
-            end
+        url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
+            *self._get_common_args(user_id),
+            resource=resource,
+            base_date=base_date,
+            end=end
         )
         return self.make_request(url)
 
@@ -386,12 +381,11 @@ class Fitbit(object):
         if not detail_level in ['1min', '15min']:
                 raise ValueError("Period must be either '1min' or '15min'")
 
-        url = "%s/%s/user/-/%s/date/%s/1d/%s" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            resource,
-            base_date,
-            detail_level
+        url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
+            *self._get_common_args(),
+            resource=resource,
+            base_date=base_date,
+            detail_level=detail_level
         )
 
         if start_time:
@@ -423,9 +417,6 @@ class Fitbit(object):
             favorite_activities(user_id=None, qualifier='')
             frequent_activities(user_id=None, qualifier='')
         """
-        if not user_id:
-            user_id = '-'
-
         if qualifier:
             if qualifier in self._qualifiers:
                 qualifier = '/%s' % qualifier
@@ -435,11 +426,9 @@ class Fitbit(object):
         else:
             qualifier = ''
 
-        url = "%s/%s/user/%s/activities%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            user_id,
-            qualifier,
+        url = "{0}/{1}/user/{2}/activities{qualifier}.json".format(
+            *self._get_common_args(user_id),
+            qualifier=qualifier
         )
         return self.make_request(url)
 
@@ -455,14 +444,9 @@ class Fitbit(object):
         * https://wiki.fitbit.com/display/API/API-Get-Frequent-Foods
         * https://wiki.fitbit.com/display/API/API-Get-Favorite-Foods
         """
-        if not user_id:
-            user_id = '-'
-
-        url = "%s/%s/user/%s/foods/log/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            user_id,
-            qualifier,
+        url = "{0}/{1}/user/{2}/foods/log/{qualifier}.json".format(
+            *self._get_common_args(user_id),
+            qualifier=qualifier
         )
         return self.make_request(url)
 
@@ -470,10 +454,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Add-Favorite-Activity
         """
-        url = "%s/%s/user/-/activities/favorite/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            activity_id,
+        url = "{0}/{1}/user/-/activities/favorite/{activity_id}.json".format(
+            *self._get_common_args(),
+            activity_id=activity_id
         )
         return self.make_request(url, method='POST')
 
@@ -481,19 +464,16 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Log-Activity
         """
-        url = "%s/%s/user/-/activities.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION)
+        url = "{0}/{1}/user/-/activities.json".format(*self._get_common_args())
         return self.make_request(url, data = data)
 
     def delete_favorite_activity(self, activity_id):
         """
         https://wiki.fitbit.com/display/API/API-Delete-Favorite-Activity
         """
-        url = "%s/%s/user/-/activities/favorite/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            activity_id,
+        url = "{0}/{1}/user/-/activities/favorite/{activity_id}.json".format(
+            *self._get_common_args(),
+            activity_id=activity_id
         )
         return self.make_request(url, method='DELETE')
 
@@ -501,10 +481,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Add-Favorite-Food
         """
-        url = "%s/%s/user/-/foods/log/favorite/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            food_id,
+        url = "{0}/{1}/user/-/foods/log/favorite/{food_id}.json".format(
+            *self._get_common_args(),
+            food_id=food_id
         )
         return self.make_request(url, method='POST')
 
@@ -512,10 +491,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Delete-Favorite-Food
         """
-        url = "%s/%s/user/-/foods/log/favorite/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            food_id,
+        url = "{0}/{1}/user/-/foods/log/favorite/{food_id}.json".format(
+            *self._get_common_args(),
+            food_id=food_id
         )
         return self.make_request(url, method='DELETE')
 
@@ -523,40 +501,30 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Create-Food
         """
-        url = "%s/%s/user/-/foods.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/user/-/foods.json".format(*self._get_common_args())
         return self.make_request(url, data=data)
 
     def get_meals(self):
         """
         https://wiki.fitbit.com/display/API/API-Get-Meals
         """
-        url = "%s/%s/user/-/meals.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/user/-/meals.json".format(*self._get_common_args())
         return self.make_request(url)
 
     def get_devices(self):
         """
         https://wiki.fitbit.com/display/API/API-Get-Devices
         """
-        url = "%s/%s/user/-/devices.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/user/-/devices.json".format(*self._get_common_args())
         return self.make_request(url)
 
     def get_alarms(self, device_id):
         """
         https://wiki.fitbit.com/display/API/API-Devices-Get-Alarms
         """
-        url = "%s/%s/user/-/devices/tracker/%s/alarms.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            device_id
+        url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms.json".format(
+            *self._get_common_args(),
+            device_id=device_id
         )
         return self.make_request(url)
 
@@ -566,10 +534,9 @@ class Fitbit(object):
         https://wiki.fitbit.com/display/API/API-Devices-Add-Alarm
         alarm_time should be a timezone aware datetime object.
         """
-        url = "%s/%s/user/-/devices/tracker/%s/alarms.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            device_id
+        url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms.json".format(
+            *self._get_common_args(),
+            device_id=device_id
         )
         alarm_time = alarm_time.strftime("%H:%M%z")
         # Check week_days list
@@ -607,11 +574,10 @@ class Fitbit(object):
         for day in week_days:
             if day not in self.WEEK_DAYS:
                 raise ValueError("Incorrect week day %s. see WEEK_DAY_LIST." % day)
-        url = "%s/%s/user/-/devices/tracker/%s/alarms/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            device_id,
-            alarm_id
+        url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms/{alarm_id}.json".format(
+            *self._get_common_args(),
+            device_id=device_id,
+            alarm_id=alarm_id
         )
         alarm_time = alarm_time.strftime("%H:%M%z")
 
@@ -635,11 +601,10 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Devices-Delete-Alarm
         """
-        url = "%s/%s/user/-/devices/tracker/%s/alarms/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            device_id,
-            alarm_id
+        url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms/{alarm_id}.json".format(
+            *self._get_common_args(),
+            device_id=device_id,
+            alarm_id=alarm_id
         )
         return self.make_request(url, method="DELETE")
 
@@ -648,12 +613,11 @@ class Fitbit(object):
         https://wiki.fitbit.com/display/API/API-Get-Sleep
         date should be a datetime.date object.
         """
-        url = "%s/%s/user/-/sleep/date/%s-%s-%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            date.year,
-            date.month,
-            date.day
+        url = "{0}/{1}/user/-/sleep/date/{year}-{month}-{day}.json".format(
+            *self._get_common_args(),
+            year=date.year,
+            month=date.month,
+            day=date.day
         )
         return self.make_request(url)
 
@@ -735,52 +699,7 @@ class Fitbit(object):
 
         You can specify period or end_date, or neither, but not both.
         """
-        if not base_date:
-            base_date = datetime.date.today()
-
-        if not user_id:
-            user_id = '-'
-
-        if period and end_date:
-            raise TypeError("Either end_date or period can be specified, not both")
-
-        if not isinstance(base_date, str):
-            base_date_string = base_date.strftime('%Y-%m-%d')
-        else:
-            base_date_string = base_date
-
-        if period:
-            if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
-                raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
-
-            url = "%s/%s/user/%s/body/log/weight/date/%s/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                base_date_string,
-                period
-            )
-        elif end_date:
-            if not isinstance(end_date, str):
-                end_string = end_date.strftime('%Y-%m-%d')
-            else:
-                end_string = end_date
-
-            url = "%s/%s/user/%s/body/log/weight/date/%s/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                base_date_string,
-                end_string
-            )
-        else:
-            url = "%s/%s/user/%s/body/log/weight/date/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                base_date_string,
-            )
-        return self.make_request(url)
+        return self._get_body('weight', base_date, user_id, period, end_date)
 
     def get_bodyfat(self, base_date=None, user_id=None, period=None, end_date=None):
         """
@@ -791,6 +710,10 @@ class Fitbit(object):
 
         You can specify period or end_date, or neither, but not both.
         """
+        return self._get_body('fat', base_date, user_id, period, end_date)
+
+    def _get_body(self, _type, base_date=None, user_id=None, period=None,
+                  end_date=None):
         if not base_date:
             base_date = datetime.date.today()
 
@@ -809,10 +732,11 @@ class Fitbit(object):
             if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
                 raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
 
-            url = "%s/%s/user/%s/body/log/fat/date/%s/%s.json" % (
+            url = "%s/%s/user/%s/body/log/%s/date/%s/%s.json" % (
                 self.API_ENDPOINT,
                 self.API_VERSION,
                 user_id,
+                _type,
                 base_date_string,
                 period
             )
@@ -822,18 +746,20 @@ class Fitbit(object):
             else:
                 end_string = end_date
 
-            url = "%s/%s/user/%s/body/log/fat/date/%s/%s.json" % (
+            url = "%s/%s/user/%s/body/log/%s/date/%s/%s.json" % (
                 self.API_ENDPOINT,
                 self.API_VERSION,
                 user_id,
+                _type,
                 base_date_string,
                 end_string
             )
         else:
-            url = "%s/%s/user/%s/body/log/fat/date/%s.json" % (
+            url = "%s/%s/user/%s/body/log/%s/date/%s.json" % (
                 self.API_ENDPOINT,
                 self.API_VERSION,
                 user_id,
+                _type,
                 base_date_string,
             )
         return self.make_request(url)
