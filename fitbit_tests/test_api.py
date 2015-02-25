@@ -327,6 +327,10 @@ class MiscTest(TestBase):
                                  detail_level='1min', start_time='3:56', end_time=datetime.time(15,7),
                                  expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
 
+    def test_sleep(self):
+        today = datetime.date.today().strftime('%Y-%m-%d')
+        self.common_api_test('sleep', (today,), {}, ("%s/-/sleep/date/%s.json" % (URLBASE, today), None), {})
+        self.common_api_test('sleep', (today, "USER_ID"), {}, ("%s/USER_ID/sleep/date/%s.json" % (URLBASE, today), None), {})
 
     def test_foods(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
@@ -369,6 +373,10 @@ class MiscTest(TestBase):
         self.common_api_test('log_activity', (), {'data' : 'FOO'}, (url,), {'data' : 'FOO'} )
         url = "%s/%s/activities/FOOBAR.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activity_detail', ("FOOBAR",), {}, (url,), {})
+
+        url = URLBASE + "/-/activities/favorite/activity_id.json"
+        self.common_api_test('add_favorite_activity', ('activity_id',), {}, (url,), {'method': 'POST'})
+        self.common_api_test('delete_favorite_activity', ('activity_id',), {}, (url,), {'method': 'DELETE'})
 
     def test_bodyweight(self):
         def test_get_bodyweight(fb, base_date=None, user_id=None, period=None, end_date=None, expected_url=None):
