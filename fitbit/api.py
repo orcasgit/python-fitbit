@@ -170,6 +170,7 @@ class Fitbit(object):
     def __init__(self, client_key, client_secret, system=US, **kwargs):
         self.client = FitbitOauthClient(client_key, client_secret, **kwargs)
         self.SYSTEM = system
+        self.periods = ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual
@@ -225,10 +226,7 @@ class Fitbit(object):
 
         https://wiki.fitbit.com/display/API/API-Get-User-Info
         """
-        if user_id is None:
-            user_id = "-"
-        url = "%s/%s/user/%s/profile.json" % (self.API_ENDPOINT,
-                                              self.API_VERSION, user_id)
+        url = "{0}/{1}/user/{2}/profile.json".format(*self._get_common_args(user_id))
         return self.make_request(url)
 
     def user_profile_update(self, data):
@@ -242,8 +240,7 @@ class Fitbit(object):
 
         https://wiki.fitbit.com/display/API/API-Update-User-Info
         """
-        url = "%s/%s/user/-/profile.json" % (self.API_ENDPOINT,
-                                              self.API_VERSION)
+        url = "{0}/{1}/user/-/profile.json".format(*self._get_common_args())
         return self.make_request(url, data)
 
     def _get_common_args(self, user_id=None):
@@ -252,6 +249,11 @@ class Fitbit(object):
             user_id = '-'
         common_args += (user_id,)
         return common_args
+
+    def _get_date_string(self, date):
+        if not isinstance(date, str):
+            return date.strftime('%Y-%m-%d')
+        return date
 
     def _COLLECTION_RESOURCE(self, resource, date=None, user_id=None,
                              data=None):
@@ -279,21 +281,15 @@ class Fitbit(object):
 
         if not date:
             date = datetime.date.today()
-        if not isinstance(date, str):
-            date = date.strftime('%Y-%m-%d')
+        date_string = self._get_date_string(date)
 
+        kwargs = {'resource': resource, 'date': date_string}
         if not data:
-            url = "{0}/{1}/user/{2}/{resource}/date/{date}.json".format(
-                *self._get_common_args(user_id),
-                resource=resource,
-                date=date
-            )
+            base_url = "{0}/{1}/user/{2}/{resource}/date/{date}.json"
         else:
-            data['date'] = date
-            url = "{0}/{1}/user/{2}/{resource}.json".format(
-                *self._get_common_args(user_id),
-                resource=resource
-            )
+            data['date'] = date_string
+            base_url = "{0}/{1}/user/{2}/{resource}.json"
+        url = base_url.format(*self._get_common_args(user_id), **kwargs)
         return self.make_request(url, data)
 
     def _DELETE_COLLECTION_RESOURCE(self, resource, log_id):
@@ -339,22 +335,17 @@ class Fitbit(object):
             raise TypeError("Either end_date or period can be specified, not both")
 
         if end_date:
-            if not isinstance(end_date, str):
-                end = end_date.strftime('%Y-%m-%d')
-            else:
-                end = end_date
+            end = self._get_date_string(end_date)
         else:
-            if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
-                raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
+            if not period in self.periods:
+                raise ValueError("Period must be one of %s"
+                                 % ','.join(self.periods))
             end = period
-
-        if not isinstance(base_date, str):
-            base_date = base_date.strftime('%Y-%m-%d')
 
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
             *self._get_common_args(user_id),
             resource=resource,
-            base_date=base_date,
+            base_date=self._get_date_string(base_date),
             end=end
         )
         return self.make_request(url)
@@ -375,16 +366,13 @@ class Fitbit(object):
         if end_time and not start_time:
             raise TypeError("You must provide a start time when you provide an end time")
 
-        if not isinstance(base_date, str):
-            base_date = base_date.strftime('%Y-%m-%d')
-
         if not detail_level in ['1min', '15min']:
                 raise ValueError("Period must be either '1min' or '15min'")
 
         url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
             *self._get_common_args(),
             resource=resource,
-            base_date=base_date,
+            base_date=self._get_date_string(base_date),
             detail_level=detail_level
         )
 
@@ -422,7 +410,7 @@ class Fitbit(object):
                 qualifier = '/%s' % qualifier
             else:
                 raise ValueError("Qualifier must be one of %s"
-                    % ', '.join(self._qualifiers))
+                                 % ', '.join(self._qualifiers))
         else:
             qualifier = ''
 
@@ -631,30 +619,23 @@ class Fitbit(object):
             'duration': duration,
             'date': start_time.strftime("%Y-%m-%d"),
         }
-        url = "%s/%s/user/-/sleep.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/user/-/sleep.json".format(*self._get_common_args())
         return self.make_request(url, data=data, method="POST")
 
     def activities_list(self):
         """
         https://wiki.fitbit.com/display/API/API-Browse-Activities
         """
-        url = "%s/%s/activities.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/activities.json".format(*self._get_common_args())
         return self.make_request(url)
 
     def activity_detail(self, activity_id):
         """
         https://wiki.fitbit.com/display/API/API-Get-Activity
         """
-        url = "%s/%s/activities/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            activity_id
+        url = "{0}/{1}/activities/{activity_id}.json".format(
+            *self._get_common_args(),
+            activity_id=activity_id
         )
         return self.make_request(url)
 
@@ -662,10 +643,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Search-Foods
         """
-        url = "%s/%s/foods/search.json?%s" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            urlencode({'query': query})
+        url = "{0}/{1}/foods/search.json?{encoded_query}".format(
+            *self._get_common_args(),
+            encoded_query=urlencode({'query': query})
         )
         return self.make_request(url)
 
@@ -673,10 +653,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Get-Food
         """
-        url = "%s/%s/foods/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            food_id
+        url = "{0}/{1}/foods/{food_id}.json".format(
+            *self._get_common_args(),
+            food_id=food_id
         )
         return self.make_request(url)
 
@@ -684,10 +663,7 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Get-Food-Units
         """
-        url = "%s/%s/foods/units.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION
-        )
+        url = "{0}/{1}/foods/units.json".format(*self._get_common_args())
         return self.make_request(url)
 
     def get_bodyweight(self, base_date=None, user_id=None, period=None, end_date=None):
@@ -712,69 +688,37 @@ class Fitbit(object):
         """
         return self._get_body('fat', base_date, user_id, period, end_date)
 
-    def _get_body(self, _type, base_date=None, user_id=None, period=None,
+    def _get_body(self, type_, base_date=None, user_id=None, period=None,
                   end_date=None):
         if not base_date:
             base_date = datetime.date.today()
 
-        if not user_id:
-            user_id = '-'
-
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
 
-        if not isinstance(base_date, str):
-            base_date_string = base_date.strftime('%Y-%m-%d')
-        else:
-            base_date_string = base_date
+        base_date_string = self._get_date_string(base_date)
 
+        kwargs = {'type_': type_}
+        base_url = "{0}/{1}/user/{2}/body/log/{type_}/date/{date_string}.json"
         if period:
-            if not period in ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']:
-                raise ValueError("Period must be one of '1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max'")
-
-            url = "%s/%s/user/%s/body/log/%s/date/%s/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                _type,
-                base_date_string,
-                period
-            )
+            if not period in self.periods:
+                raise ValueError("Period must be one of %s" %
+                                 ','.join(self.periods))
+            kwargs['date_string'] = '/'.join([base_date_string, period])
         elif end_date:
-            if not isinstance(end_date, str):
-                end_string = end_date.strftime('%Y-%m-%d')
-            else:
-                end_string = end_date
-
-            url = "%s/%s/user/%s/body/log/%s/date/%s/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                _type,
-                base_date_string,
-                end_string
-            )
+            end_string = self._get_date_string(end_date)
+            kwargs['date_string'] = '/'.join([base_date_string, end_string])
         else:
-            url = "%s/%s/user/%s/body/log/%s/date/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                user_id,
-                _type,
-                base_date_string,
-            )
+            kwargs['date_string'] = base_date_string
+
+        url = base_url.format(*self._get_common_args(user_id), **kwargs)
         return self.make_request(url)
 
     def get_friends(self, user_id=None):
         """
         https://wiki.fitbit.com/display/API/API-Get-Friends
         """
-        if not user_id:
-            user_id = '-'
-        url = "%s/%s/user/%s/friends.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            user_id
-        )
+        url = "{0}/{1}/user/{2}/friends.json".format(*self._get_common_args(user_id))
         return self.make_request(url)
 
     def get_friends_leaderboard(self, period):
@@ -783,10 +727,9 @@ class Fitbit(object):
         """
         if not period in ['7d', '30d']:
             raise ValueError("Period must be one of '7d', '30d'")
-        url = "%s/%s/user/-/friends/leaders/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            period
+        url = "{0}/{1}/user/-/friends/leaders/{period}.json".format(
+            *self._get_common_args(),
+            period=period
         )
         return self.make_request(url)
 
@@ -794,10 +737,7 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Create-Invite
         """
-        url = "%s/%s/user/-/friends/invitations.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-        )
+        url = "{0}/{1}/user/-/friends/invitations.json".format(*self._get_common_args())
         return self.make_request(url, data=data)
 
     def invite_friend_by_email(self, email):
@@ -818,10 +758,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Accept-Invite
         """
-        url = "%s/%s/user/-/friends/invitations/%s.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            other_user_id,
+        url = "{0}/{1}/user/-/friends/invitations/{user_id}.json".format(
+            *self._get_common_args(),
+            user_id=other_user_id
         )
         accept = 'true' if accept else 'false'
         return self.make_request(url, data={'accept': accept})
@@ -842,13 +781,7 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/API-Get-Badges
         """
-        if not user_id:
-            user_id = '-'
-        url = "%s/%s/user/%s/badges.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            user_id
-        )
+        url = "{0}/{1}/user/{2}/badges.json".format(*self._get_common_args(user_id))
         return self.make_request(url)
 
     def subscription(self, subscription_id, subscriber_id, collection=None,
@@ -856,22 +789,15 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
         """
-        if not collection:
-            url = "%s/%s/user/-/apiSubscriptions/%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                subscription_id
-            )
-        else:
-            url = "%s/%s/user/-/%s/apiSubscriptions/%s-%s.json" % (
-                self.API_ENDPOINT,
-                self.API_VERSION,
-                collection,
-                subscription_id,
-                collection
-            )
+        base_url = "{0}/{1}/user/-{collection}/apiSubscriptions/{end_string}.json"
+        kwargs = {'collection': '', 'end_string': subscription_id}
+        if collection:
+            kwargs = {
+                'end_string': '-'.join([subscription_id, collection]),
+                'collection': '/' + collection
+            }
         return self.make_request(
-            url,
+            base_url.format(*self._get_common_args(), **kwargs),
             method=method,
             headers={"X-Fitbit-Subscriber-id": subscriber_id}
         )
@@ -880,12 +806,9 @@ class Fitbit(object):
         """
         https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
         """
-        if collection:
-            collection = '/%s' % collection
-        url = "%s/%s/user/-%s/apiSubscriptions.json" % (
-            self.API_ENDPOINT,
-            self.API_VERSION,
-            collection,
+        url = "{0}/{1}/user/-{collection}/apiSubscriptions.json".format(
+            *self._get_common_args(),
+            collection='/{0}'.format(collection) if collection else ''
         )
         return self.make_request(url)
 
