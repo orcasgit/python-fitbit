@@ -24,13 +24,16 @@ class TestBase(TestCase):
         self.assertRaises(exc, getattr(self.fb, funcname), *args, **kwargs)
 
 class APITest(TestBase):
-    """Tests for python-fitbit API, not directly involved in getting authenticated"""
+    """
+    Tests for python-fitbit API, not directly involved in getting
+    authenticated
+    """
 
     def test_make_request(self):
         # If make_request returns a response with status 200,
         # we get back the json decoded value that was in the response.content
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.SYSTEM}}
+        KWARGS = { 'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.system}}
         mock_response = mock.Mock()
         mock_response.status_code = 200
         mock_response.content = b"1"
@@ -50,7 +53,7 @@ class APITest(TestBase):
         mock_response.status_code = 202
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'Accept-Language': self.fb.SYSTEM}
+        KWARGS = { 'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -63,7 +66,7 @@ class APITest(TestBase):
         mock_response.status_code = 204
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.SYSTEM}
+        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -76,7 +79,7 @@ class APITest(TestBase):
         mock_response.status_code = 205
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.SYSTEM}
+        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             self.assertRaises(DeleteError, self.fb.make_request, *ARGS, **KWARGS)
@@ -92,7 +95,7 @@ class APITest(TestBase):
         self.common_api_test('user_profile_update', (data,), {}, (url, data), {})
 
 class CollectionResourceTest(TestBase):
-    """Tests for _COLLECTION_RESOURCE"""
+    """ Tests for _COLLECTION_RESOURCE """
     def test_all_args(self):
         # If we pass all the optional args, the right things happen
         resource = "RESOURCE"

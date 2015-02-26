@@ -149,8 +149,9 @@ class Fitbit(object):
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
     WEEK_DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+    PERIODS = ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']
 
-    _resource_list = [
+    RESOURCE_LIST = [
         'body',
         'activities',
         'foods/log',
@@ -161,7 +162,7 @@ class Fitbit(object):
         'glucose',
     ]
 
-    _qualifiers = [
+    QUALIFIERS = [
         'recent',
         'favorite',
         'frequent',
@@ -169,13 +170,12 @@ class Fitbit(object):
 
     def __init__(self, client_key, client_secret, system=US, **kwargs):
         self.client = FitbitOauthClient(client_key, client_secret, **kwargs)
-        self.SYSTEM = system
-        self.periods = ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']
+        self.system = system
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual
         # Methods for each
-        for resource in self._resource_list:
+        for resource in Fitbit.RESOURCE_LIST:
             underscore_resource = resource.replace('/', '_')
             setattr(self, underscore_resource,
                     curry(self._COLLECTION_RESOURCE, resource))
@@ -185,7 +185,7 @@ class Fitbit(object):
                 setattr(self, 'delete_%s' % underscore_resource, curry(
                     self._DELETE_COLLECTION_RESOURCE, resource))
 
-        for qualifier in self._qualifiers:
+        for qualifier in Fitbit.QUALIFIERS:
             setattr(self, '%s_activities' % qualifier, curry(self.activity_stats, qualifier=qualifier))
             setattr(self, '%s_foods' % qualifier, curry(self._food_stats,
                                                         qualifier=qualifier))
@@ -194,7 +194,7 @@ class Fitbit(object):
         ##@ This should handle data level errors, improper requests, and bad
         # serialization
         headers = kwargs.get('headers', {})
-        headers.update({'Accept-Language': self.SYSTEM})
+        headers.update({'Accept-Language': self.system})
         kwargs['headers'] = headers
 
         method = kwargs.get('method', 'POST' if 'data' in kwargs else 'GET')
@@ -337,9 +337,9 @@ class Fitbit(object):
         if end_date:
             end = self._get_date_string(end_date)
         else:
-            if not period in self.periods:
+            if not period in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s"
-                                 % ','.join(self.periods))
+                                 % ','.join(Fitbit.PERIODS))
             end = period
 
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
@@ -406,11 +406,11 @@ class Fitbit(object):
             frequent_activities(user_id=None, qualifier='')
         """
         if qualifier:
-            if qualifier in self._qualifiers:
+            if qualifier in Fitbit.QUALIFIERS:
                 qualifier = '/%s' % qualifier
             else:
                 raise ValueError("Qualifier must be one of %s"
-                                 % ', '.join(self._qualifiers))
+                                 % ', '.join(Fitbit.QUALIFIERS))
         else:
             qualifier = ''
 
@@ -701,9 +701,9 @@ class Fitbit(object):
         kwargs = {'type_': type_}
         base_url = "{0}/{1}/user/{2}/body/log/{type_}/date/{date_string}.json"
         if period:
-            if not period in self.periods:
+            if not period in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s" %
-                                 ','.join(self.periods))
+                                 ','.join(Fitbit.PERIODS))
             kwargs['date_string'] = '/'.join([base_date_string, period])
         elif end_date:
             end_string = self._get_date_string(end_date)
