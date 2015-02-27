@@ -23,6 +23,7 @@ class TestBase(TestCase):
     def verify_raises(self, funcname, args, kwargs, exc):
         self.assertRaises(exc, getattr(self.fb, funcname), *args, **kwargs)
 
+
 class APITest(TestBase):
     """
     Tests for python-fitbit API, not directly involved in getting
@@ -84,15 +85,6 @@ class APITest(TestBase):
             client_make_request.return_value = mock_response
             self.assertRaises(DeleteError, self.fb.make_request, *ARGS, **KWARGS)
 
-    def test_user_profile_get(self):
-        user_id = "FOO"
-        url = URLBASE + "/%s/profile.json" % user_id
-        self.common_api_test('user_profile_get', (user_id,), {}, (url,), {})
-
-    def test_user_profile_update(self):
-        data = "BAR"
-        url = URLBASE + "/-/profile.json"
-        self.common_api_test('user_profile_update', (data,), {}, (url, data), {})
 
 class CollectionResourceTest(TestBase):
     """ Tests for _COLLECTION_RESOURCE """
@@ -165,6 +157,7 @@ class CollectionResourceTest(TestBase):
         self.assertEqual({'date': 1, 'user_id': 2, 'data': 3}, kwargs)
         self.assertEqual(999, retval)
 
+
 class DeleteCollectionResourceTest(TestBase):
     """Tests for _DELETE_COLLECTION_RESOURCE"""
     def test_impl(self):
@@ -204,11 +197,38 @@ class DeleteCollectionResourceTest(TestBase):
         self.assertEqual({'log_id': log_id}, kwargs)
         self.assertEqual(999, retval)
 
-class MiscTest(TestBase):
-    def test_activities(self):
-        user_id = "Qui-Gon Jinn"
-        self.common_api_test('activities', (), {}, (URLBASE + "/%s/activities/date/%s.json" % (user_id, datetime.date.today().strftime('%Y-%m-%d'),),), {})
-        self.common_api_test('activities', (), {}, (URLBASE + "/-/activities/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'),), {})
+
+class ResourceAccessTest(TestBase):
+    """
+    Class for testing the Fitbit Resource Access API:
+    https://wiki.fitbit.com/display/API/Fitbit+Resource+Access+API
+    """
+    def test_user_profile_get(self):
+        """
+        Test getting a user profile.
+        https://wiki.fitbit.com/display/API/API-Get-User-Info
+
+        Tests the following HTTP method/URLs:
+        GET https://api.fitbit.com/1/user/FOO/profile.json
+        GET https://api.fitbit.com/1/user/-/profile.json
+        """
+        user_id = "FOO"
+        url = URLBASE + "/%s/profile.json" % user_id
+        self.common_api_test('user_profile_get', (user_id,), {}, (url,), {})
+        url = URLBASE + "/-/profile.json"
+        self.common_api_test('user_profile_get', (), {}, (url,), {})
+
+    def test_user_profile_update(self):
+        """
+        Test updating a user profile.
+        https://wiki.fitbit.com/display/API/API-Update-User-Info
+
+        Tests the following HTTP method/URLs:
+        POST https://api.fitbit.com/1/user/-/profile.json
+        """
+        data = "BAR"
+        url = URLBASE + "/-/profile.json"
+        self.common_api_test('user_profile_update', (data,), {}, (url, data), {})
 
     def test_recent_activities(self):
         user_id = "LukeSkywalker"
@@ -273,63 +293,6 @@ class MiscTest(TestBase):
         test_timeseries(self.fb, resource, user_id=user_id, base_date=datetime.date(1992,5,12), period=None, end_date=end_date,
             expected_url=URLBASE + "/BAR/FOO/date/1992-05-12/1998-12-31.json")
 
-    def test_intraday_timeseries(self):
-        resource = 'FOO'
-        base_date = '1918-05-11'
-
-        # detail_level must be valid
-        self.assertRaises(
-            ValueError,
-            self.fb.intraday_time_series,
-            resource,
-            base_date,
-            detail_level="xyz",
-            start_time=None,
-            end_time=None)
-
-        # provide end_time if start_time provided
-        self.assertRaises(
-            TypeError,
-            self.fb.intraday_time_series,
-            resource,
-            base_date,
-            detail_level="1min",
-            start_time='12:55',
-            end_time=None)
-
-        # provide start_time if end_time provided
-        self.assertRaises(
-            TypeError,
-            self.fb.intraday_time_series,
-            resource,
-            base_date,
-            detail_level="1min",
-            start_time=None,
-            end_time='12:55')
-
-        def test_intraday_timeseries(fb, resource, base_date, detail_level, start_time, end_time, expected_url):
-            with mock.patch.object(fb, 'make_request') as make_request:
-                retval = fb.intraday_time_series(resource, base_date, detail_level, start_time, end_time)
-            args, kwargs = make_request.call_args
-            self.assertEqual((expected_url,), args)
-
-        # Default
-        test_intraday_timeseries(self.fb, resource, base_date=base_date,
-                                 detail_level='1min', start_time=None, end_time=None,
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
-        # start_date can be a date object
-        test_intraday_timeseries(self.fb, resource, base_date=datetime.date(1918, 5, 11),
-                                 detail_level='1min', start_time=None, end_time=None,
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
-        # start_time can be a datetime object
-        test_intraday_timeseries(self.fb, resource, base_date=base_date,
-                                 detail_level='1min', start_time=datetime.time(3,56), end_time='15:07',
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
-        # end_time can be a datetime object
-        test_intraday_timeseries(self.fb, resource, base_date=base_date,
-                                 detail_level='1min', start_time='3:56', end_time=datetime.time(15,7),
-                                 expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
-
     def test_sleep(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
         self.common_api_test('sleep', (today,), {}, ("%s/-/sleep/date/%s.json" % (URLBASE, today), None), {})
@@ -370,6 +333,16 @@ class MiscTest(TestBase):
         self.common_api_test('get_badges', (), {}, (url,), {})
 
     def test_activities(self):
+        """
+        Test the getting/creating/deleting various activity related items.
+        Tests the following HTTP method/URLs:
+
+        GET https://api.fitbit.com/1/activities.json
+        POST https://api.fitbit.com/1/user/-/activities.json
+        GET https://api.fitbit.com/1/activities/FOOBAR.json
+        POST https://api.fitbit.com/1/user/-/activities/favorite/activity_id.json
+        DELETE https://api.fitbit.com/1/user/-/activities/favorite/activity_id.json
+        """
         url = "%s/%s/activities.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
         self.common_api_test('activities_list', (), {}, (url,), {})
         url = "%s/%s/user/-/activities.json" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
@@ -381,49 +354,89 @@ class MiscTest(TestBase):
         self.common_api_test('add_favorite_activity', ('activity_id',), {}, (url,), {'method': 'POST'})
         self.common_api_test('delete_favorite_activity', ('activity_id',), {}, (url,), {'method': 'DELETE'})
 
-    def test_bodyweight(self):
-        def test_get_bodyweight(fb, base_date=None, user_id=None, period=None, end_date=None, expected_url=None):
-            with mock.patch.object(fb, 'make_request') as make_request:
-                fb.get_bodyweight(base_date, user_id=user_id, period=period, end_date=end_date)
-            args, kwargs = make_request.call_args
-            self.assertEqual((expected_url,), args)
+    def _test_get_bodyweight(self, base_date=None, user_id=None, period=None,
+                             end_date=None, expected_url=None):
+        """ Helper method for testing retrieving body weight measurements """
+        with mock.patch.object(self.fb, 'make_request') as make_request:
+            self.fb.get_bodyweight(base_date, user_id=user_id, period=period,
+                                   end_date=end_date)
+        args, kwargs = make_request.call_args
+        self.assertEqual((expected_url,), args)
 
+    def test_bodyweight(self):
+        """
+        Tests for retrieving body weight measurements.
+        https://wiki.fitbit.com/display/API/API-Get-Body-Weight
+        Tests the following methods/URLs:
+        GET https://api.fitbit.com/1/user/-/body/log/weight/date/1992-05-12.json
+        GET https://api.fitbit.com/1/user/BAR/body/log/weight/date/1992-05-12/1998-12-31.json
+        GET https://api.fitbit.com/1/user/BAR/body/log/weight/date/1992-05-12/1d.json
+        GET https://api.fitbit.com/1/user/-/body/log/weight/date/2015-02-26.json
+        """
         user_id = 'BAR'
 
         # No end_date or period
-        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=None, period=None, end_date=None,
+        self._test_get_bodyweight(
+            base_date=datetime.date(1992, 5, 12), user_id=None, period=None,
+            end_date=None,
             expected_url=URLBASE + "/-/body/log/weight/date/1992-05-12.json")
         # With end_date
-        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None, end_date=datetime.date(1998, 12, 31),
+        self._test_get_bodyweight(
+            base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None,
+            end_date=datetime.date(1998, 12, 31),
             expected_url=URLBASE + "/BAR/body/log/weight/date/1992-05-12/1998-12-31.json")
         # With period
-        test_get_bodyweight(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d", end_date=None,
+        self._test_get_bodyweight(
+            base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d",
+            end_date=None,
             expected_url=URLBASE + "/BAR/body/log/weight/date/1992-05-12/1d.json")
         # Date defaults to today
-        test_get_bodyweight(self.fb, base_date=None, user_id=None, period=None, end_date=None,
-            expected_url=URLBASE + "/-/body/log/weight/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'))
+        today = datetime.date.today().strftime('%Y-%m-%d')
+        self._test_get_bodyweight(
+            base_date=None, user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/weight/date/%s.json" % today)
+
+    def _test_get_bodyfat(self, base_date=None, user_id=None, period=None,
+                          end_date=None, expected_url=None):
+        """ Helper method for testing getting bodyfat measurements """
+        with mock.patch.object(self.fb, 'make_request') as make_request:
+            self.fb.get_bodyfat(base_date, user_id=user_id, period=period,
+                                end_date=end_date)
+        args, kwargs = make_request.call_args
+        self.assertEqual((expected_url,), args)
 
     def test_bodyfat(self):
-        def test_get_bodyfat(fb, base_date=None, user_id=None, period=None, end_date=None, expected_url=None):
-            with mock.patch.object(fb, 'make_request') as make_request:
-                fb.get_bodyfat(base_date, user_id=user_id, period=period, end_date=end_date)
-            args, kwargs = make_request.call_args
-            self.assertEqual((expected_url,), args)
-
+        """
+        Tests for retrieving bodyfat measurements.
+        https://wiki.fitbit.com/display/API/API-Get-Body-Fat
+        Tests the following methods/URLs:
+        GET https://api.fitbit.com/1/user/-/body/log/fat/date/1992-05-12.json
+        GET https://api.fitbit.com/1/user/BAR/body/log/fat/date/1992-05-12/1998-12-31.json
+        GET https://api.fitbit.com/1/user/BAR/body/log/fat/date/1992-05-12/1d.json
+        GET https://api.fitbit.com/1/user/-/body/log/fat/date/2015-02-26.json
+        """
         user_id = 'BAR'
 
         # No end_date or period
-        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=None, period=None, end_date=None,
+        self._test_get_bodyfat(
+            base_date=datetime.date(1992, 5, 12), user_id=None, period=None,
+            end_date=None,
             expected_url=URLBASE + "/-/body/log/fat/date/1992-05-12.json")
         # With end_date
-        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None, end_date=datetime.date(1998, 12, 31),
+        self._test_get_bodyfat(
+            base_date=datetime.date(1992, 5, 12), user_id=user_id, period=None,
+            end_date=datetime.date(1998, 12, 31),
             expected_url=URLBASE + "/BAR/body/log/fat/date/1992-05-12/1998-12-31.json")
         # With period
-        test_get_bodyfat(self.fb, base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d", end_date=None,
+        self._test_get_bodyfat(
+            base_date=datetime.date(1992, 5, 12), user_id=user_id, period="1d",
+            end_date=None,
             expected_url=URLBASE + "/BAR/body/log/fat/date/1992-05-12/1d.json")
         # Date defaults to today
-        test_get_bodyfat(self.fb, base_date=None, user_id=None, period=None, end_date=None,
-            expected_url=URLBASE + "/-/body/log/fat/date/%s.json" % datetime.date.today().strftime('%Y-%m-%d'))
+        today = datetime.date.today().strftime('%Y-%m-%d')
+        self._test_get_bodyfat(
+            base_date=None, user_id=None, period=None, end_date=None,
+            expected_url=URLBASE + "/-/body/log/fat/date/%s.json" % today)
 
     def test_friends(self):
         url = URLBASE + "/-/friends.json"
@@ -447,20 +460,6 @@ class MiscTest(TestBase):
         self.common_api_test('respond_to_invite', ("FOO", ), {}, (url,), {'data':{'accept': "true"}})
         self.common_api_test('accept_invite', ("FOO",), {}, (url,), {'data':{'accept': "true"}})
         self.common_api_test('reject_invite', ("FOO", ), {}, (url,), {'data':{'accept': "false"}})
-
-    def test_subscriptions(self):
-        url = URLBASE + "/-/apiSubscriptions.json"
-        self.common_api_test('list_subscriptions', (), {}, (url,), {})
-        url = URLBASE + "/-/FOO/apiSubscriptions.json"
-        self.common_api_test('list_subscriptions', ("FOO",), {}, (url,), {})
-        url = URLBASE + "/-/apiSubscriptions/SUBSCRIPTION_ID.json"
-        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {},
-                (url,), {'method': 'POST', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
-        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {'method': 'THROW'},
-            (url,), {'method': 'THROW', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
-        url = URLBASE + "/-/COLLECTION/apiSubscriptions/SUBSCRIPTION_ID-COLLECTION.json"
-        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {'method': 'THROW', 'collection': "COLLECTION"},
-            (url,), {'method': 'THROW', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
 
     def test_alarms(self):
         url = "%s/-/devices/tracker/%s/alarms.json" % (URLBASE, 'FOO')
@@ -529,3 +528,113 @@ class MiscTest(TestBase):
                 },
             'method': 'POST'}
         )
+
+
+class SubscriptionsTest(TestBase):
+    """
+    Class for testing the Fitbit Subscriptions API:
+    https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
+    """
+
+    def test_subscriptions(self):
+        """
+        Subscriptions tests. Tests the following methods/URLs:
+        GET https://api.fitbit.com/1/user/-/apiSubscriptions.json
+        GET https://api.fitbit.com/1/user/-/FOO/apiSubscriptions.json
+        POST https://api.fitbit.com/1/user/-/apiSubscriptions/SUBSCRIPTION_ID.json
+        POST https://api.fitbit.com/1/user/-/apiSubscriptions/SUBSCRIPTION_ID.json
+        POST https://api.fitbit.com/1/user/-/COLLECTION/apiSubscriptions/SUBSCRIPTION_ID-COLLECTION.json
+        """
+        url = URLBASE + "/-/apiSubscriptions.json"
+        self.common_api_test('list_subscriptions', (), {}, (url,), {})
+        url = URLBASE + "/-/FOO/apiSubscriptions.json"
+        self.common_api_test('list_subscriptions', ("FOO",), {}, (url,), {})
+        url = URLBASE + "/-/apiSubscriptions/SUBSCRIPTION_ID.json"
+        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {},
+                (url,), {'method': 'POST', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
+        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {'method': 'THROW'},
+            (url,), {'method': 'THROW', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
+        url = URLBASE + "/-/COLLECTION/apiSubscriptions/SUBSCRIPTION_ID-COLLECTION.json"
+        self.common_api_test('subscription', ("SUBSCRIPTION_ID", "SUBSCRIBER_ID"), {'method': 'THROW', 'collection': "COLLECTION"},
+            (url,), {'method': 'THROW', 'headers': {'X-Fitbit-Subscriber-id': "SUBSCRIBER_ID"}})
+
+
+class PartnerAPITest(TestBase):
+    """
+    Class for testing the Fitbit Partner API:
+    https://wiki.fitbit.com/display/API/Fitbit+Partner+API
+    """
+
+    def _test_intraday_timeseries(self, resource, base_date, detail_level,
+                                  start_time, end_time, expected_url):
+        """ Helper method for intraday timeseries tests """
+        with mock.patch.object(self.fb, 'make_request') as make_request:
+            retval = self.fb.intraday_time_series(
+                resource, base_date, detail_level, start_time, end_time)
+        args, kwargs = make_request.call_args
+        self.assertEqual((expected_url,), args)
+
+    def test_intraday_timeseries(self):
+        """
+        Intraday Time Series tests:
+        https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
+
+        Tests the following methods/URLs:
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json
+        """
+        resource = 'FOO'
+        base_date = '1918-05-11'
+
+        # detail_level must be valid
+        self.assertRaises(
+            ValueError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            detail_level="xyz",
+            start_time=None,
+            end_time=None)
+
+        # provide end_time if start_time provided
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            detail_level="1min",
+            start_time='12:55',
+            end_time=None)
+
+        # provide start_time if end_time provided
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            detail_level="1min",
+            start_time=None,
+            end_time='12:55')
+
+        # Default
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time=None, end_time=None,
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
+        # start_date can be a date object
+        self._test_intraday_timeseries(
+            resource, base_date=datetime.date(1918, 5, 11),
+            detail_level='1min', start_time=None, end_time=None,
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
+        # start_time can be a datetime object
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time=datetime.time(3,56), end_time='15:07',
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
+        # end_time can be a datetime object
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time='3:56', end_time=datetime.time(15,7),
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")

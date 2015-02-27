@@ -1,7 +1,14 @@
 import unittest
 from .test_exceptions import ExceptionTest
 from .test_auth import AuthTest
-from .test_api import APITest, CollectionResourceTest, DeleteCollectionResourceTest, MiscTest
+from .test_api import (
+    APITest,
+    CollectionResourceTest,
+    DeleteCollectionResourceTest,
+    ResourceAccessTest,
+    SubscriptionsTest,
+    PartnerAPITest
+)
 
 
 def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=None):
@@ -17,5 +24,7 @@ def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=No
     suite.addTest(unittest.makeSuite(APITest))
     suite.addTest(unittest.makeSuite(CollectionResourceTest))
     suite.addTest(unittest.makeSuite(DeleteCollectionResourceTest))
-    suite.addTest(unittest.makeSuite(MiscTest))
+    suite.addTest(unittest.makeSuite(ResourceAccessTest))
+    suite.addTest(unittest.makeSuite(SubscriptionsTest))
+    suite.addTest(unittest.makeSuite(PartnerAPITest))
     return suite
