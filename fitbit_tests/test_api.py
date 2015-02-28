@@ -607,6 +607,14 @@ class PartnerAPITest(TestBase):
             detail_level="1min",
             start_time='12:55',
             end_time=None)
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            detail_level="1min",
+            start_time='12:55',
+            end_time='')
 
         # provide start_time if end_time provided
         self.assertRaises(
@@ -616,6 +624,14 @@ class PartnerAPITest(TestBase):
             base_date,
             detail_level="1min",
             start_time=None,
+            end_time='12:55')
+        self.assertRaises(
+            TypeError,
+            self.fb.intraday_time_series,
+            resource,
+            base_date,
+            detail_level="1min",
+            start_time='',
             end_time='12:55')
 
         # Default
@@ -638,3 +654,18 @@ class PartnerAPITest(TestBase):
             resource, base_date=base_date, detail_level='1min',
             start_time='3:56', end_time=datetime.time(15,7),
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
+        # start_time can be a midnight datetime object
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time=datetime.time(0, 0), end_time=datetime.time(15, 7),
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/00:00/15:07.json")
+        # end_time can be a midnight datetime object
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time=datetime.time(3, 56), end_time=datetime.time(0, 0),
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/00:00.json")
+        # start_time and end_time can be a midnight datetime object
+        self._test_intraday_timeseries(
+            resource, base_date=base_date, detail_level='1min',
+            start_time=datetime.time(0, 0), end_time=datetime.time(0, 0),
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/00:00/00:00.json")

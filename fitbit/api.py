@@ -360,14 +360,14 @@ class Fitbit(object):
         https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
         """
 
-        if start_time and not end_time:
-            raise TypeError("You must provide an end time when you provide a start time")
-
-        if end_time and not start_time:
-            raise TypeError("You must provide a start time when you provide an end time")
+        # Check that the time range is valid
+        time_test = lambda t: not (t is None or isinstance(t, str) and not t)
+        time_map = list(map(time_test, [start_time, end_time]))
+        if not all(time_map) and any(time_map):
+            raise TypeError('You must provide both the end and start time or neither')
 
         if not detail_level in ['1min', '15min']:
-                raise ValueError("Period must be either '1min' or '15min'")
+            raise ValueError("Period must be either '1min' or '15min'")
 
         url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
             *self._get_common_args(),
@@ -376,17 +376,13 @@ class Fitbit(object):
             detail_level=detail_level
         )
 
-        if start_time:
-            time_init = start_time
-            if not isinstance(time_init, str):
-                time_init = start_time.strftime('%H:%M')
-            url = url + ('/time/%s' % (time_init))
-
-        if end_time:
-            time_fin = end_time
-            if not isinstance(time_fin, str):
-                time_fin = time_fin.strftime('%H:%M')
-            url = url + ('/%s' % (time_fin))
+        if all(time_map):
+            url = url + '/time'
+            for time in [start_time, end_time]:
+                time_str = time
+                if not isinstance(time_str, str):
+                    time_str = time.strftime('%H:%M')
+                url = url + ('/%s' % (time_str))
 
         url = url + '.json'
 
