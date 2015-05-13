@@ -1,4 +1,4 @@
 -r base.txt
 -r test.txt
 
-tox>=1.9,<1.10
+tox>=2.0,<2.1
