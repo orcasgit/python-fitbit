@@ -2,6 +2,7 @@
 import requests
 import json
 import datetime
+import base64
 
 try:
     from urllib.parse import urlencode
@@ -9,7 +10,7 @@ except ImportError:
     # Python 2.x
     from urllib import urlencode
 
-from requests_oauthlib import OAuth1, OAuth1Session
+from requests_oauthlib import OAuth1, OAuth1Session, OAuth2, OAuth2Session
 
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
@@ -140,6 +141,133 @@ class FitbitOauthClient(object):
         self.resource_owner_key = response.get('oauth_token')
         self.resource_owner_secret = response.get('oauth_token_secret')
         return response
+
+
+class FitbitOauth2Client(object):
+    API_ENDPOINT = "https://api.fitbit.com"
+    AUTHORIZE_ENDPOINT = "https://www.fitbit.com"
+    API_VERSION = 1
+
+    request_token_url = "%s/oauth2/token" % API_ENDPOINT
+    authorization_url = "%s/oauth2/authorize" % AUTHORIZE_ENDPOINT
+    access_token_url = request_token_url
+    refresh_token_url = request_token_url
+
+    def __init__(self, client_id , client_secret, 
+                access_token=None, refresh_token=None,
+                resource_owner_key=None, resource_owner_secret=None, user_id=None, 
+                *args, **kwargs):
+        """
+        Create a FitbitOauth2Client object. Specify the first 7 parameters if
+        you have them to access user data. Specify just the first 2 parameters
+        to start the setup for user authorization (as an example see gather_key_oauth2.py)
+            - client_id, client_secret are in the app configuration page
+            https://dev.fitbit.com/apps
+            - access_token, refresh_token are obtained after the user grants permission
+            - resource_owner_key, resource_owner_secret, user_id are user parameters 
+        """
+
+        self.session = requests.Session()
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.resource_owner_key = resource_owner_key
+        self.resource_owner_secret = resource_owner_secret
+        self.header = {'Authorization': 'Basic ' + base64.b64encode(client_id +':' + client_secret)}
+        if user_id:
+            self.user_id = user_id
+
+       #params = {'client_secret': client_secret}
+       #if self.resource_owner_key and self.resource_owner_secret:
+            #params['resource_owner_key'] = self.resource_owner_key
+            #params['resource_owner_secret'] = self.resource_owner_secret
+        #self.oauth = OAuth2Session(client_id, **params)
+        self.oauth = OAuth2Session(client_id)
+
+    def _request(self, method, url, **kwargs):
+        """
+        A simple wrapper around requests.
+        """
+        return self.session.request(method, url, **kwargs)
+
+    def make_request(self, url, data={}, method=None, **kwargs):
+        """
+        Builds and makes the OAuth Request, catches errors
+
+        https://wiki.fitbit.com/display/API/API+Response+Format+And+Errors
+        """
+        if not method:
+            method = 'POST' if data else 'GET'
+        auth = OAuth2(
+            self.client_id, self.client_secret, self.resource_owner_key,
+            self.resource_owner_secret, signature_type='auth_header')
+        response = self._request(method, url, data=data, auth=auth, **kwargs)
+
+        if response.status_code == 401:
+            raise HTTPUnauthorized(response)
+        elif response.status_code == 403:
+            raise HTTPForbidden(response)
+        elif response.status_code == 404:
+            raise HTTPNotFound(response)
+        elif response.status_code == 409:
+            raise HTTPConflict(response)
+        elif response.status_code == 429:
+            exc = HTTPTooManyRequests(response)
+            exc.retry_after_secs = int(response.headers['Retry-After'])
+            raise exc
+
+        elif response.status_code >= 500:
+            raise HTTPServerError(response)
+        elif response.status_code >= 400:
+            raise HTTPBadRequest(response)
+        return response
+
+    def authorize_token_url(self, scope=None, redirect_uri=None, **kwargs):
+        """Step 1: Return the URL the user needs to go to in order to grant us
+        authorization to look at their data.  Then redirect the user to that
+        URL, open their browser to it, or tell them to copy the URL into their
+        browser.  
+            - scope: pemissions that that are being requested [default ask all]
+            - redirect_uri: url to which the reponse will posted
+                            required only if your app does not have one
+                TODO: check if you can give any url and grab code from it
+            for more info see https://wiki.fitbit.com/display/API/OAuth+2.0
+        """
+        
+        if scope:
+           self.oauth.scope = scope
+        else: 
+           #self.oauth.scope = {"heartrate", "location"} 
+           self.oauth.scope = "activity nutrition heartrate location nutrition profile settings sleep social weight"
+
+        if redirect_uri:
+            self.oauth.redirect_uri = redirect_uri
+        
+        return self.oauth.authorization_url(self.authorization_url, **kwargs)
+
+    def fetch_access_token(self, verifier, token=None):
+        """Step 3: Given the verifier from fitbit, and optionally a token from
+        step 1 (not necessary if using the same FitbitOAuthClient object) calls
+        fitbit again and returns an access token object. Extract the needed
+        information from that and save it to use in future API calls.
+        """
+        if token:
+            self.resource_owner_key = token.get('oauth_token')
+            self.resource_owner_secret = token.get('oauth_token_secret')
+
+        self.oauth = OAuth2Session(
+            self.client_key,
+            client_secret=self.client_secret,
+            resource_owner_key=self.resource_owner_key,
+            resource_owner_secret=self.resource_owner_secret,
+            verifier=verifier)
+        response = self.oauth.fetch_access_token(self.access_token_url)
+
+        self.user_id = response.get('encoded_user_id')
+        self.resource_owner_key = response.get('oauth_token')
+        self.resource_owner_secret = response.get('oauth_token_secret')
+        return response
+
+
 
 
 class Fitbit(object):
