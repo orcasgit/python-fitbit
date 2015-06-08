@@ -494,7 +494,18 @@ class Fitbit(object):
         """
         url = "{0}/{1}/user/-/meals.json".format(*self._get_common_args())
         return self.make_request(url)
-
+		
+    def get_food(self, date):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Food-Logs
+        date should be a datetime.date object.
+        """
+        url = "{0}/{1}/user/-/foods/log/date/{date}.json".format(
+		    *self._get_common_args(),
+			date=date.strftime("%Y-%m-%d")
+		)
+        return self.make_request(url)
+		
     def get_devices(self):
         """
         https://wiki.fitbit.com/display/API/API-Get-Devices
