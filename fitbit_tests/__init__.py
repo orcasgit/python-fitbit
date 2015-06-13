@@ -1,6 +1,6 @@
 import unittest
 from .test_exceptions import ExceptionTest
-from .test_auth import AuthTest
+from .test_auth import AuthTest, Auth2Test
 from .test_api import (
     APITest,
     CollectionResourceTest,
@@ -21,6 +21,7 @@ def all_tests(consumer_key="", consumer_secret="", user_key=None, user_secret=No
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(ExceptionTest))
     suite.addTest(unittest.makeSuite(AuthTest))
+    suite.addTest(unittest.makeSuite(Auth2Test))
     suite.addTest(unittest.makeSuite(APITest))
     suite.addTest(unittest.makeSuite(CollectionResourceTest))
     suite.addTest(unittest.makeSuite(DeleteCollectionResourceTest))
