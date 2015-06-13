@@ -324,23 +324,18 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, client_key=None, client_secret=None, client_id=None, system=US, **kwargs):
+    def __init__(self, client_key, client_secret, oauth2=False, system=US, **kwargs):
         """
-            pleasse provide either client_key/client_secret to use OAuth1
-            pleasse provide either client_id/client_secret to use OAuth2
-            kwargs can be used to provide parameters: 
-            oath1: Fitbit(<key>, <secret>,resource_owner_key=<key>, resource_owner_secret=<key>)
-            oath2: Fitbit(client_id=<id>, <secret>,access_token=<token>, refresh_token=<token>)
+            oauth1: Fitbit(<key>, <secret>, resource_owner_key=<key>, resource_owner_secret=<key>)
+            oauth2: Fitbit(<id>, <secret>, oauth2=True, access_token=<token>, refresh_token=<token>)
         """
         self.system = system
 
-        if (client_key is not None)  or kwargs.has_key('client_key'):  
-            self.client = FitbitOauthClient(client_key, client_secret, **kwargs)
-        elif (client_id is not None) or kwargs.has_key('client_id'): 
-            self.client = FitbitOauth2Client(client_id, client_secret, **kwargs)
+        if oauth2:
+            self.client = FitbitOauth2Client(client_key, client_secret, **kwargs)
         else:
-            raise TypeError("Please specify either client_key (oauth1) or client_id (oauth2)") 
-            
+            self.client = FitbitOauthClient(client_key, client_secret, **kwargs)
+
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual
         # Methods for each
