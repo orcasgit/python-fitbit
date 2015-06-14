@@ -530,8 +530,14 @@ class Fitbit(object):
         if not all(time_map) and any(time_map):
             raise TypeError('You must provide both the end and start time or neither')
 
-        if not detail_level in ['1min', '15min']:
-            raise ValueError("Period must be either '1min' or '15min'")
+        """
+        Per
+        https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
+        the detail-level is now (OAuth 2.0 ):
+        either "1min" or "15min" (optional). "1sec" for heart rate.
+        """
+        if not detail_level in ['1sec', '1min', '15min']:
+            raise ValueError("Period must be either '1sec', '1min', or '15min'")
 
         url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
             *self._get_common_args(),
