@@ -483,6 +483,137 @@ class Fitbit(object):
         response = self.make_request(url, method='DELETE')
         return response
 
+    def _resource_goal(self, resource, data={}, period=None):
+        """ Handles GETting and POSTing resource goals of all types """
+        url = "{0}/{1}/user/-/{resource}/goal{postfix}.json".format(
+            *self._get_common_args(),
+            resource=resource,
+            postfix=('s/' + period) if period else ''
+        )
+        return self.make_request(url, data=data)
+
+    def _filter_nones(self, data):
+        filter_nones = lambda item: item[1] is not None
+        filtered_kwargs = list(filter(filter_nones, data.items()))
+        return {} if not filtered_kwargs else dict(filtered_kwargs)
+
+    def body_fat_goal(self, fat=None):
+        """
+        Implements the following APIs
+
+        * https://wiki.fitbit.com/display/API/API-Get-Body-Fat
+        * https://wiki.fitbit.com/display/API/API-Update-Fat-Goal
+
+        Pass no arguments to get the body fat goal. Pass a ``fat`` argument
+        to update the body fat goal.
+
+        Arguments:
+        * ``fat`` -- Target body fat in %; in the format X.XX
+        """
+        return self._resource_goal('body/log/fat', {'fat': fat} if fat else {})
+
+    def body_weight_goal(self, start_date=None, start_weight=None, weight=None):
+        """
+        Implements the following APIs
+
+        * https://wiki.fitbit.com/display/API/API-Get-Body-Weight-Goal
+        * https://wiki.fitbit.com/display/API/API-Update-Weight-Goal
+
+        Pass no arguments to get the body weight goal. Pass ``start_date``,
+        ``start_weight`` and optionally ``weight`` to set the weight goal.
+        ``weight`` is required if it hasn't been set yet.
+
+        Arguments:
+        * ``start_date`` -- Weight goal start date; in the format yyyy-MM-dd
+        * ``start_weight`` -- Weight goal start weight; in the format X.XX
+        * ``weight`` -- Weight goal target weight; in the format X.XX
+        """
+        data = self._filter_nones(
+            {'startDate': start_date, 'startWeight': start_weight, 'weight': weight})
+        if data and not ('startDate' in data and 'startWeight' in data):
+            raise ValueError('start_date and start_weight are both required')
+        return self._resource_goal('body/log/weight', data)
+
+    def activities_daily_goal(self, calories_out=None, active_minutes=None,
+                              floors=None, distance=None, steps=None):
+        """
+        Implements the following APIs
+
+        https://wiki.fitbit.com/display/API/API-Get-Activity-Daily-Goals
+        https://wiki.fitbit.com/display/API/API-Update-Activity-Daily-Goals
+
+        Pass no arguments to get the daily activities goal. Pass any one of
+        the optional arguments to set that component of the daily activities
+        goal.
+
+        Arguments:
+        * ``calories_out`` -- New goal value; in an integer format
+        * ``active_minutes`` -- New goal value; in an integer format
+        * ``floors`` -- New goal value; in an integer format
+        * ``distance`` -- New goal value; in the format X.XX or integer
+        * ``steps`` -- New goal value; in an integer format
+        """
+        data = self._filter_nones(
+            {'caloriesOut': calories_out, 'activeMinutes': active_minutes,
+            'floors': floors, 'distance': distance, 'steps': steps})
+        return self._resource_goal('activities', data, period='daily')
+
+    def activities_weekly_goal(self, distance=None, floors=None, steps=None):
+        """
+        Implements the following APIs
+
+        https://wiki.fitbit.com/display/API/API-Get-Activity-Weekly-Goals
+        https://wiki.fitbit.com/display/API/API-Update-Activity-Weekly-Goals
+
+        Pass no arguments to get the weekly activities goal. Pass any one of
+        the optional arguments to set that component of the weekly activities
+        goal.
+
+        Arguments:
+        * ``distance`` -- New goal value; in the format X.XX or integer
+        * ``floors`` -- New goal value; in an integer format
+        * ``steps`` -- New goal value; in an integer format
+        """
+        data = self._filter_nones({'distance': distance, 'floors': floors,
+                                   'steps': steps})
+        return self._resource_goal('activities', data, period='weekly')
+
+    def food_goal(self, calories=None, intensity=None, personalized=None):
+        """
+        Implements the following APIs
+
+        https://wiki.fitbit.com/display/API/API-Get-Food-Goals
+        https://wiki.fitbit.com/display/API/API-Update-Food-Goals
+
+        Pass no arguments to get the food goal. Pass at least ``calories`` or
+        ``intensity`` and optionally ``personalized`` to update the food goal.
+
+        Arguments:
+        * ``calories`` -- Manual Calorie Consumption Goal; calories, integer;
+        * ``intensity`` -- Food Plan intensity; (MAINTENANCE, EASIER, MEDIUM, KINDAHARD, HARDER);
+        * ``personalized`` -- Food Plan type; ``True`` or ``False``
+        """
+        data = self._filter_nones({'calories': calories, 'intensity': intensity,
+                                   'personalized': personalized})
+        if data and not ('calories' in data or 'intensity' in data):
+            raise ValueError('Either calories or intensity is required')
+        return self._resource_goal('foods/log', data)
+
+    def water_goal(self, target=None):
+        """
+        Implements the following APIs
+
+        https://wiki.fitbit.com/display/API/API-Get-Water-Goal
+        https://wiki.fitbit.com/display/API/API-Update-Water-Goal
+
+        Pass no arguments to get the water goal. Pass ``target`` to update it.
+
+        Arguments:
+        * ``target`` -- Target water goal in the format X.X, will be set in unit based on locale
+        """
+        data = self._filter_nones({'target': target})
+        return self._resource_goal('foods/log/water', data)
+
     def time_series(self, resource, user_id=None, base_date='today',
                     period=None, end_date=None):
         """

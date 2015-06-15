@@ -16,9 +16,9 @@ class TestBase(TestCase):
         # arguments and verify that make_request is called with the expected args and kwargs
         with mock.patch.object(self.fb, 'make_request') as make_request:
             retval = getattr(self.fb, funcname)(*args, **kwargs)
-        args, kwargs = make_request.call_args
-        self.assertEqual(expected_args, args)
-        self.assertEqual(expected_kwargs, kwargs)
+        mr_args, mr_kwargs = make_request.call_args
+        self.assertEqual(expected_args, mr_args)
+        self.assertEqual(expected_kwargs, mr_kwargs)
 
     def verify_raises(self, funcname, args, kwargs, exc):
         self.assertRaises(exc, getattr(self.fb, funcname), *args, **kwargs)
@@ -249,6 +249,72 @@ class ResourceAccessTest(TestBase):
         user_id = "O B 1 Kenobi"
         qualifier = None
         self.common_api_test('activity_stats', (), dict(user_id=user_id, qualifier=qualifier), (URLBASE + "/%s/activities.json" % user_id,), {})
+
+    def test_body_fat_goal(self):
+        self.common_api_test(
+            'body_fat_goal', (), dict(),
+            (URLBASE + '/-/body/log/fat/goal.json',), {'data': {}})
+        self.common_api_test(
+            'body_fat_goal', (), dict(fat=10),
+            (URLBASE + '/-/body/log/fat/goal.json',), {'data': {'fat': 10}})
+
+    def test_body_weight_goal(self):
+        self.common_api_test(
+            'body_weight_goal', (), dict(),
+            (URLBASE + '/-/body/log/weight/goal.json',), {'data': {}})
+        self.common_api_test(
+            'body_weight_goal', (), dict(start_date='2015-04-01', start_weight=180),
+            (URLBASE + '/-/body/log/weight/goal.json',),
+            {'data': {'startDate': '2015-04-01', 'startWeight': 180}})
+        self.verify_raises('body_weight_goal', (), {'start_date': '2015-04-01'}, ValueError)
+        self.verify_raises('body_weight_goal', (), {'start_weight': 180}, ValueError)
+
+    def test_activities_daily_goal(self):
+        self.common_api_test(
+            'activities_daily_goal', (), dict(),
+            (URLBASE + '/-/activities/goals/daily.json',), {'data': {}})
+        self.common_api_test(
+            'activities_daily_goal', (), dict(steps=10000),
+            (URLBASE + '/-/activities/goals/daily.json',), {'data': {'steps': 10000}})
+        self.common_api_test(
+            'activities_daily_goal', (),
+            dict(calories_out=3107, active_minutes=30, floors=10, distance=5, steps=10000),
+            (URLBASE + '/-/activities/goals/daily.json',),
+            {'data': {'caloriesOut': 3107, 'activeMinutes': 30, 'floors': 10, 'distance': 5, 'steps': 10000}})
+
+    def test_activities_weekly_goal(self):
+        self.common_api_test(
+            'activities_weekly_goal', (), dict(),
+            (URLBASE + '/-/activities/goals/weekly.json',), {'data': {}})
+        self.common_api_test(
+            'activities_weekly_goal', (), dict(steps=10000),
+            (URLBASE + '/-/activities/goals/weekly.json',), {'data': {'steps': 10000}})
+        self.common_api_test(
+            'activities_weekly_goal', (),
+            dict(floors=10, distance=5, steps=10000),
+            (URLBASE + '/-/activities/goals/weekly.json',),
+            {'data': {'floors': 10, 'distance': 5, 'steps': 10000}})
+
+    def test_food_goal(self):
+        self.common_api_test(
+            'food_goal', (), dict(),
+            (URLBASE + '/-/foods/log/goal.json',), {'data': {}})
+        self.common_api_test(
+            'food_goal', (), dict(calories=2300),
+            (URLBASE + '/-/foods/log/goal.json',), {'data': {'calories': 2300}})
+        self.common_api_test(
+            'food_goal', (), dict(intensity='EASIER', personalized=True),
+            (URLBASE + '/-/foods/log/goal.json',),
+            {'data': {'intensity': 'EASIER', 'personalized': True}})
+        self.verify_raises('food_goal', (), {'personalized': True}, ValueError)
+
+    def test_water_goal(self):
+        self.common_api_test(
+            'water_goal', (), dict(),
+            (URLBASE + '/-/foods/log/water/goal.json',), {'data': {}})
+        self.common_api_test(
+            'water_goal', (), dict(target=63),
+            (URLBASE + '/-/foods/log/water/goal.json',), {'data': {'target': 63}})
 
     def test_timeseries(self):
         resource = 'FOO'
