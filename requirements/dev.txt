@@ -2,4 +2,4 @@
 -r test.txt
 
 cherrypy>=3.7,<3.8
-tox>=1.8,<2.1
+tox>=2.1,<2.2
