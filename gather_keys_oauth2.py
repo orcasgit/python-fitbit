@@ -75,5 +75,7 @@ if __name__ == '__main__':
 
     server = OAuth2Server(*sys.argv[1:])
     server.browser_authorize()
+
     print('FULL RESULTS = %s' % server.oauth.token)
     print('ACCESS_TOKEN = %s' % server.oauth.token['access_token'])
+    print('REFRESH_TOKEN = %s' % server.oauth.token['refresh_token'])
