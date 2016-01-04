@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
-import requests
-import json
-import datetime
 import base64
+import datetime
+import json
+import requests
 
 try:
     from urllib.parse import urlencode
@@ -169,13 +169,8 @@ class FitbitOauth2Client(object):
         self.session = requests.Session()
         self.client_id = client_id
         self.client_secret = client_secret
-        dec_str = client_id + ':' + client_secret
-        enc_str = base64.b64encode(dec_str.encode('utf-8'))
-        self.auth_header = {'Authorization': b'Basic ' + enc_str}
-
         self.token = {'access_token' : access_token,
                       'refresh_token': refresh_token}
-
         self.oauth = OAuth2Session(client_id)
 
     def _request(self, method, url, **kwargs):
@@ -272,7 +267,11 @@ class FitbitOauth2Client(object):
         the token is internally saved
         """
         auth = OAuth2Session(self.client_id, redirect_uri=redirect_uri)
-        self.token = auth.fetch_token(self.access_token_url, headers=self.auth_header, code=code)
+        self.token = auth.fetch_token(
+            self.access_token_url,
+            username=self.client_id,
+            password=self.client_secret,
+            code=code)
 
         return self.token
 
@@ -281,19 +280,17 @@ class FitbitOauth2Client(object):
         obtained in step 2.
         the token is internally saved
         """
-        ##the method in oauth does not allow a custom header (issue created #182)
-        ## in the mean time here is a request from the ground up
-        #out  = self.oauth.refresh_token(self.refresh_token_url,
-        #refresh_token=self.token['refresh_token'],
-        #kwarg=self.auth_header)
 
-        auth = OAuth2Session(self.client_id)
-        body = auth._client.prepare_refresh_body(refresh_token=self.token['refresh_token'])
-        r = auth.post(self.refresh_token_url, data=dict(urldecode(body)), verify=True,headers=self.auth_header)
-        auth._client.parse_request_body_response(r.text, scope=self.oauth.scope)
-        self.oauth.token = auth._client.token
-        self.token = auth._client.token
-        return(self.token)
+        unenc_str = (self.client_id + ':' + self.client_secret).encode('utf8')
+        headers = {
+            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            'Authorization': b'Basic ' + base64.b64encode(unenc_str)
+        }
+        self.token = self.oauth.refresh_token(
+            self.refresh_token_url,
+            refresh_token=self.token['refresh_token'],
+            headers=headers)
+        return self.token
 
 
 
