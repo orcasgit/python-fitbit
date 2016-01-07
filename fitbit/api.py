@@ -202,12 +202,10 @@ class FitbitOauth2Client(object):
         if response.status_code == 401:
             d = json.loads(response.content.decode('utf8'))
             try:
-                if(d['errors'][0]['errorType']=='oauth' and
-                    d['errors'][0]['fieldName']=='access_token' and
-                    d['errors'][0]['message'].find('Access token invalid or expired:')==0):
-                            self.refresh_token()
-                            auth = OAuth2(client_id=self.client_id, token=self.token)
-                            response = self._request(method, url, data=data, auth=auth, **kwargs)
+                if(d['errors'][0]['message'].find('Access token invalid or expired:')==0):
+                    self.refresh_token()
+                    auth = OAuth2(client_id=self.client_id, token=self.token)
+                    response = self._request(method, url, data=data, auth=auth, **kwargs)
             except:
                 pass
 
