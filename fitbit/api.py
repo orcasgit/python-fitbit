@@ -12,7 +12,6 @@ except ImportError:
 
 from requests_oauthlib import OAuth1, OAuth1Session, OAuth2, OAuth2Session
 from oauthlib.oauth2 import TokenExpiredError
-from oauthlib.common import urldecode
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
                                HTTPServerError, HTTPConflict, HTTPNotFound,
@@ -154,9 +153,9 @@ class FitbitOauth2Client(object):
     access_token_url = request_token_url
     refresh_token_url = request_token_url
 
-    def __init__(self, client_id , client_secret,
-                access_token=None, refresh_token=None,
-                *args, **kwargs):
+    def __init__(self, client_id, client_secret,
+                 access_token=None, refresh_token=None,
+                 *args, **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
         you have them to access user data. Specify just the first 2 parameters
@@ -169,8 +168,10 @@ class FitbitOauth2Client(object):
         self.session = requests.Session()
         self.client_id = client_id
         self.client_secret = client_secret
-        self.token = {'access_token' : access_token,
-                      'refresh_token': refresh_token}
+        self.token = {
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        }
         self.oauth = OAuth2Session(client_id)
 
     def _request(self, method, url, **kwargs):
@@ -196,14 +197,14 @@ class FitbitOauth2Client(object):
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
 
-        #yet another token expiration check
-        #(the above try/except only applies if the expired token was obtained
-        #using the current instance of the class this is a a general case)
+        # yet another token expiration check
+        # (the above try/except only applies if the expired token was obtained
+        # using the current instance of the class this is a a general case)
         if response.status_code == 401:
             d = json.loads(response.content.decode('utf8'))
             try:
-                if(d['errors'][0]['errorType']=='oauth' and
-                    d['errors'][0]['fieldName']=='access_token' and
+                if(d['errors'][0]['errorType'] == 'oauth' and
+                    d['errors'][0]['fieldName'] == 'access_token' and
                     d['errors'][0]['message'].find('Access token invalid or expired:')==0):
                             self.refresh_token()
                             auth = OAuth2(client_id=self.client_id, token=self.token)
@@ -241,18 +242,20 @@ class FitbitOauth2Client(object):
             for more info see https://wiki.fitbit.com/display/API/OAuth+2.0
         """
 
-       	#the scope parameter is caussing some issues when refreshing tokens
-       	#so not saving it
-        old_scope = self.oauth.scope;
-        old_redirect = self.oauth.redirect_uri;
+        # the scope parameter is caussing some issues when refreshing tokens
+        # so not saving it
+        old_scope = self.oauth.scope
+        old_redirect = self.oauth.redirect_uri
         if scope:
-           self.oauth.scope = scope
+            self.oauth.scope = scope
         else:
-           self.oauth.scope =["activity", "nutrition","heartrate","location", "nutrition","profile","settings","sleep","social","weight"]
+            self.oauth.scope = [
+                "activity", "nutrition", "heartrate", "location", "nutrition",
+                "profile", "settings", "sleep", "social", "weight"
+            ]
 
         if redirect_uri:
             self.oauth.redirect_uri = redirect_uri
-
 
         out = self.oauth.authorization_url(self.authorization_url, **kwargs)
         self.oauth.scope = old_scope
@@ -291,8 +294,6 @@ class FitbitOauth2Client(object):
             refresh_token=self.token['refresh_token'],
             headers=headers)
         return self.token
-
-
 
 
 class Fitbit(object):
@@ -352,7 +353,7 @@ class Fitbit(object):
                                                         qualifier=qualifier))
 
     def make_request(self, *args, **kwargs):
-        ##@ This should handle data level errors, improper requests, and bad
+        # This should handle data level errors, improper requests, and bad
         # serialization
         headers = kwargs.get('headers', {})
         headers.update({'Accept-Language': self.system})
@@ -525,8 +526,11 @@ class Fitbit(object):
         * ``start_weight`` -- Weight goal start weight; in the format X.XX
         * ``weight`` -- Weight goal target weight; in the format X.XX
         """
-        data = self._filter_nones(
-            {'startDate': start_date, 'startWeight': start_weight, 'weight': weight})
+        data = self._filter_nones({
+            'startDate': start_date,
+            'startWeight': start_weight,
+            'weight': weight
+        })
         if data and not ('startDate' in data and 'startWeight' in data):
             raise ValueError('start_date and start_weight are both required')
         return self._resource_goal('body/log/weight', data)
@@ -550,9 +554,13 @@ class Fitbit(object):
         * ``distance`` -- New goal value; in the format X.XX or integer
         * ``steps`` -- New goal value; in an integer format
         """
-        data = self._filter_nones(
-            {'caloriesOut': calories_out, 'activeMinutes': active_minutes,
-            'floors': floors, 'distance': distance, 'steps': steps})
+        data = self._filter_nones({
+            'caloriesOut': calories_out,
+            'activeMinutes': active_minutes,
+            'floors': floors,
+            'distance': distance,
+            'steps': steps
+        })
         return self._resource_goal('activities', data, period='daily')
 
     def activities_weekly_goal(self, distance=None, floors=None, steps=None):
@@ -747,7 +755,7 @@ class Fitbit(object):
         https://wiki.fitbit.com/display/API/API-Log-Activity
         """
         url = "{0}/{1}/user/-/activities.json".format(*self._get_common_args())
-        return self.make_request(url, data = data)
+        return self.make_request(url, data=data)
 
     def delete_favorite_activity(self, activity_id):
         """
@@ -810,8 +818,9 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
-    def add_alarm(self, device_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
-                     snooze_length=None, snooze_count=None, vibe='DEFAULT'):
+    def add_alarm(self, device_id, alarm_time, week_days, recurring=False,
+                  enabled=True, label=None, snooze_length=None,
+                  snooze_count=None, vibe='DEFAULT'):
         """
         https://wiki.fitbit.com/display/API/API-Devices-Add-Alarm
         alarm_time should be a timezone aware datetime object.
