@@ -7,7 +7,7 @@ Fitbit API Library
 :license: BSD, see LICENSE for more details.
 """
 
-from .api import Fitbit, FitbitOauthClient, FitbitOauth2Client
+from .api import Fitbit, FitbitOauth2Client
 
 # Meta.
 
@@ -17,8 +17,8 @@ __author_email__ = 'bpitcher@orcasinc.com'
 __copyright__ = 'Copyright 2012-2015 ORCAS'
 __license__ = 'Apache 2.0'
 
-__version__ = '0.1.3'
-__release__ = '0.1.3'
+__version__ = '0.2'
+__release__ = '0.2'
 
 # Module namespace.
 

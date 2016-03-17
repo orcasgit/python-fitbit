@@ -21,18 +21,11 @@ If you are only retrieving data that doesn't require authorization, then you can
     # certain methods do not require user keys
     unauth_client.food_units()
 
-Here is an example of authorizing with OAuth 1.0::
-
-    # You'll have to gather the user keys on your own, or try
-    # ./gather_keys_cli.py <consumer_key> <consumer_secret> for development
-    authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>', resource_owner_key='<user_key>', resource_owner_secret='<user_secret>')
-    authd_client.sleep()
-
 Here is an example of authorizing with OAuth 2.0::
 
     # You'll have to gather the tokens on your own, or use
     # ./gather_keys_oauth2.py
-    authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>', oauth2=True,
+    authd_client = fitbit.Fitbit('<consumer_key>', '<consumer_secret>',
                                  access_token='<access_token>', refresh_token='<refresh_token>')
     authd_client.sleep()
 

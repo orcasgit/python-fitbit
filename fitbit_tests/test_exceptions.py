@@ -5,6 +5,7 @@ import sys
 from fitbit import Fitbit
 from fitbit import exceptions
 
+
 class ExceptionTest(unittest.TestCase):
     """
     Tests that certain response codes raise certain exceptions
@@ -12,8 +13,8 @@ class ExceptionTest(unittest.TestCase):
     client_kwargs = {
         "client_key": "",
         "client_secret": "",
-        "user_key": None,
-        "user_secret": None,
+        "access_token": None,
+        "refresh_token": None
     }
 
     def test_response_ok(self):
@@ -36,7 +37,6 @@ class ExceptionTest(unittest.TestCase):
         r.status_code = 204
         f.user_profile_get()
 
-
     def test_response_auth(self):
         """
         This test checks how the client handles different auth responses, and
@@ -44,7 +44,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 401
-        r.content = b"{'normal': 'resource'}"
+        r.content = b'{"normal": "resource"}'
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -54,14 +54,14 @@ class ExceptionTest(unittest.TestCase):
         r.status_code = 403
         self.assertRaises(exceptions.HTTPForbidden, f.user_profile_get)
 
-
     def test_response_error(self):
         """
         Tests other HTTP errors
         """
         r = mock.Mock(spec=requests.Response)
-        r.content = b"{'normal': 'resource'}"
+        r.content = b'{"normal": "resource"}'
 
+        self.client_kwargs['oauth2'] = True
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
 
