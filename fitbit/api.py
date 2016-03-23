@@ -985,12 +985,3 @@ class Fitbit(object):
             collection='/{0}'.format(collection) if collection else ''
         )
         return self.make_request(url)
-
-    """
-    @classmethod
-    def from_oauth_keys(self, client_key, client_secret, user_key=None,
-                        user_secret=None, user_id=None, system=US):
-        client = FitbitOauthClient(client_key, client_secret, user_key,
-                                   user_secret, user_id)
-        return self(client, system)
-    """
