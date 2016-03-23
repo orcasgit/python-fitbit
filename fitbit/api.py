@@ -198,12 +198,12 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, client_key, client_secret, system=US, **kwargs):
+    def __init__(self, client_id, client_secret, system=US, **kwargs):
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
         self.system = system
-        self.client = FitbitOauth2Client(client_key, client_secret, **kwargs)
+        self.client = FitbitOauth2Client(client_id, client_secret, **kwargs)
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual

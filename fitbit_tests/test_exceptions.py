@@ -11,7 +11,7 @@ class ExceptionTest(unittest.TestCase):
     Tests that certain response codes raise certain exceptions
     """
     client_kwargs = {
-        "client_key": "",
+        "client_id": "",
         "client_secret": "",
         "access_token": None,
         "refresh_token": None

@@ -11,7 +11,7 @@ class Auth2Test(TestCase):
     make sure we call the right oauth calls, respond correctly based on the responses
     """
     client_kwargs = {
-        'client_key': 'fake_id',
+        'client_id': 'fake_id',
         'client_secret': 'fake_secret',
         'callback_uri': 'fake_callback_url',
         'scope': ['fake_scope1']
