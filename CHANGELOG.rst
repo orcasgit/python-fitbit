@@ -1,3 +1,9 @@
+0.2 (2016-03-23)
+================
+
+* Drop OAuth1 support. See .. _OAuth1-deprecated: https://dev.fitbit.com/docs/oauth2/#oauth-1-0a-deprecated
+* Drop py26 and py32 support
+
 0.1.3 (2015-02-04)
 ==================
 
