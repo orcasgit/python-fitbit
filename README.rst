@@ -18,7 +18,7 @@ For documentation: `http://python-fitbit.readthedocs.org/ <http://python-fitbit.
 Requirements
 ============
 
-* Python 2.6+
+* Python 2.7+
 * `python-dateutil`_ (always)
 * `requests-oauthlib`_ (always)
 * `Sphinx`_ (to create the documention)

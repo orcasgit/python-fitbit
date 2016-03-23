@@ -34,7 +34,7 @@ class APITest(TestBase):
         # If make_request returns a response with status 200,
         # we get back the json decoded value that was in the response.content
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.system}}
+        KWARGS = {'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.system}}
         mock_response = mock.Mock()
         mock_response.status_code = 200
         mock_response.content = b"1"
@@ -54,7 +54,7 @@ class APITest(TestBase):
         mock_response.status_code = 202
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -67,7 +67,7 @@ class APITest(TestBase):
         mock_response.status_code = 204
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -80,7 +80,7 @@ class APITest(TestBase):
         mock_response.status_code = 205
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             self.assertRaises(DeleteError, self.fb.make_request, *ARGS, **KWARGS)
@@ -93,7 +93,7 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = datetime.date(1962, 1, 13)
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date.strftime("%Y-%m-%d")
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
@@ -104,17 +104,17 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = "1962-1-13"
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
-        self.common_api_test('_COLLECTION_RESOURCE',(resource, date, user_id, data), {}, (url, expected_data), {} )
+        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url, expected_data), {})
 
     def test_no_date(self):
         # If we omit the date, it uses today
         resource = "RESOURCE"
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = datetime.date.today().strftime("%Y-%m-%d")  # expect today
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
@@ -125,12 +125,17 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = datetime.date(1962, 1, 13)
         user_id = None
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date.strftime("%Y-%m-%d")
         expected_user_id = "-"
         url = URLBASE + "/%s/%s.json" % (expected_user_id, resource)
-        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url,expected_data), {})
+        self.common_api_test(
+            '_COLLECTION_RESOURCE',
+            (resource, date, user_id, data), {},
+            (url, expected_data),
+            {}
+        )
 
     def test_no_data(self):
         # If we omit the data arg, it does the right thing
@@ -139,7 +144,7 @@ class CollectionResourceTest(TestBase):
         user_id = "bilbo"
         data = None
         url = URLBASE + "/%s/%s/date/%s.json" % (user_id, resource, date)
-        self.common_api_test('_COLLECTION_RESOURCE', (resource,date,user_id,data), {}, (url,data), {})
+        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url, data), {})
 
     def test_body(self):
         # Test the first method defined in __init__ to see if it calls
@@ -164,14 +169,18 @@ class DeleteCollectionResourceTest(TestBase):
         # _DELETE_COLLECTION_RESOURCE calls make_request with the right args
         resource = "RESOURCE"
         log_id = "Foo"
-        url = URLBASE + "/-/%s/%s.json" % (resource,log_id)
-        self.common_api_test('_DELETE_COLLECTION_RESOURCE', (resource, log_id), {},
-            (url,), {"method": "DELETE"})
+        url = URLBASE + "/-/%s/%s.json" % (resource, log_id)
+        self.common_api_test(
+            '_DELETE_COLLECTION_RESOURCE',
+            (resource, log_id), {},
+            (url,),
+            {"method": "DELETE"}
+        )
 
     def test_cant_delete_body(self):
         self.assertFalse(hasattr(self.fb, 'delete_body'))
 
-    def test_delete_water(self):
+    def test_delete_foods_log(self):
         log_id = "fake_log_id"
         # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
         # since the __init__ is going to set up references to it
@@ -184,7 +193,7 @@ class DeleteCollectionResourceTest(TestBase):
         self.assertEqual({'log_id': log_id}, kwargs)
         self.assertEqual(999, retval)
 
-    def test_delete_water(self):
+    def test_delete_foods_log_water(self):
         log_id = "OmarKhayyam"
         # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
         # since the __init__ is going to set up references to it
@@ -713,12 +722,12 @@ class PartnerAPITest(TestBase):
         # start_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(3,56), end_time='15:07',
+            start_time=datetime.time(3, 56), end_time='15:07',
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
         # end_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time='3:56', end_time=datetime.time(15,7),
+            start_time='3:56', end_time=datetime.time(15, 7),
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
         # start_time can be a midnight datetime object
         self._test_intraday_timeseries(
