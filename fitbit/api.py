@@ -81,9 +81,9 @@ class FitbitOauth2Client(object):
             try:
                 if(d['errors'][0]['errorType'] == 'expired_token' and
                     d['errors'][0]['message'].find('Access token expired:') == 0):
-                            self.refresh_token()
-                            auth = OAuth2(client_id=self.client_id, token=self.token)
-                            response = self._request(method, url, data=data, auth=auth, **kwargs)
+                        self.refresh_token()
+                        auth = OAuth2(client_id=self.client_id, token=self.token)
+                        response = self._request(method, url, data=data, auth=auth, **kwargs)
             except:
                 pass
 
@@ -158,16 +158,12 @@ class FitbitOauth2Client(object):
         obtained in step 2.
         the token is internally saved
         """
-
-        unenc_str = (self.client_id + ':' + self.client_secret).encode('utf8')
-        headers = {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-            'Authorization': b'Basic ' + base64.b64encode(unenc_str)
-        }
         self.token = self.oauth.refresh_token(
             self.refresh_token_url,
             refresh_token=self.token['refresh_token'],
-            headers=headers)
+            auth=requests.auth.HTTPBasicAuth(self.client_id, self.client_secret)
+        )
+
         return self.token
 
 
