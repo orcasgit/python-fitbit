@@ -1,3 +1,7 @@
+0.2.2 (2016-03-30)
+==================
+* Refresh token bugfixes
+
 0.2.1 (2016-03-28)
 ==================
 * Update requirements to use requests-oauthlib>=0.6.1

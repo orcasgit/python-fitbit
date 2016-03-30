@@ -1,14 +1,15 @@
 from unittest import TestCase
 from fitbit import Fitbit, FitbitOauth2Client
+from fitbit.exceptions import HTTPUnauthorized
 import mock
 from requests_oauthlib import OAuth2Session
-from oauthlib.oauth2 import TokenExpiredError
 
 
 class Auth2Test(TestCase):
     """Add tests for auth part of API
     mock the oauth library calls to simulate various responses,
-    make sure we call the right oauth calls, respond correctly based on the responses
+    make sure we call the right oauth calls, respond correctly based on the
+    responses
     """
     client_kwargs = {
         'client_id': 'fake_id',
@@ -60,8 +61,8 @@ class Auth2Test(TestCase):
         self.assertEqual("fake_return_refresh_token", retval['refresh_token'])
 
     def test_auto_refresh_token_exception(self):
-        # test of auto_refresh with tokenExpired exception
-        # 1. first call to _request causes a TokenExpired
+        """Test of auto_refresh with Unauthorized exception"""
+        # 1. first call to _request causes a HTTPUnauthorized
         # 2. the token_refresh call is faked
         # 3. the second call to _request returns a valid value
         kwargs = self.client_kwargs
@@ -70,7 +71,10 @@ class Auth2Test(TestCase):
 
         fb = Fitbit(**kwargs)
         with mock.patch.object(FitbitOauth2Client, '_request') as r:
-            r.side_effect = [TokenExpiredError, fake_response(200, 'correct_response')]
+            r.side_effect = [
+                HTTPUnauthorized(fake_response(401, b'correct_response')),
+                fake_response(200, 'correct_response')
+            ]
             with mock.patch.object(OAuth2Session, 'refresh_token') as rt:
                 rt.return_value = {
                     'access_token': 'fake_return_access_token',
@@ -78,13 +82,15 @@ class Auth2Test(TestCase):
                 }
                 retval = fb.client.make_request(Fitbit.API_ENDPOINT + '/1/user/-/profile.json')
         self.assertEqual("correct_response", retval.text)
-        self.assertEqual("fake_return_access_token", fb.client.token['access_token'])
-        self.assertEqual("fake_return_refresh_token", fb.client.token['refresh_token'])
+        self.assertEqual(
+            "fake_return_access_token", fb.client.token['access_token'])
+        self.assertEqual(
+            "fake_return_refresh_token", fb.client.token['refresh_token'])
         self.assertEqual(1, rt.call_count)
         self.assertEqual(2, r.call_count)
 
-    def test_auto_refresh_token_nonException(self):
-        # test of auto_refersh when the exception doesn't fire
+    def test_auto_refresh_token_non_exception(self):
+        """Test of auto_refersh when the exception doesn't fire"""
         # 1. first call to _request causes a 401 expired token response
         # 2. the token_refresh call is faked
         # 3. the second call to _request returns a valid value
@@ -94,8 +100,10 @@ class Auth2Test(TestCase):
 
         fb = Fitbit(**kwargs)
         with mock.patch.object(FitbitOauth2Client, '_request') as r:
-            r.side_effect = [fake_response(401, b'{"errors": [{"message": "Access token invalid or expired: some_token_goes_here", "errorType": "oauth", "fieldName": "access_token"}]}'),
-                             fake_response(200, 'correct_response')]
+            r.side_effect = [
+                fake_response(401, b'{"errors": [{"message": "Access token expired: some_token_goes_here", "errorType": "expired_token", "fieldName": "access_token"}]}'),
+                fake_response(200, 'correct_response')
+            ]
             with mock.patch.object(OAuth2Session, 'refresh_token') as rt:
                 rt.return_value = {
                     'access_token': 'fake_return_access_token',
@@ -103,8 +111,10 @@ class Auth2Test(TestCase):
                 }
                 retval = fb.client.make_request(Fitbit.API_ENDPOINT + '/1/user/-/profile.json')
         self.assertEqual("correct_response", retval.text)
-        self.assertEqual("fake_return_access_token", fb.client.token['access_token'])
-        self.assertEqual("fake_return_refresh_token", fb.client.token['refresh_token'])
+        self.assertEqual(
+            "fake_return_access_token", fb.client.token['access_token'])
+        self.assertEqual(
+            "fake_return_refresh_token", fb.client.token['refresh_token'])
         self.assertEqual(1, rt.call_count)
         self.assertEqual(2, r.call_count)
 
