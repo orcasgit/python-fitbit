@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import base64
 import datetime
 import json
 import requests
@@ -11,7 +10,6 @@ except ImportError:
     from urllib import urlencode
 
 from requests_oauthlib import OAuth2, OAuth2Session
-from oauthlib.oauth2 import TokenExpiredError
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
                                HTTPServerError, HTTPConflict, HTTPNotFound,
