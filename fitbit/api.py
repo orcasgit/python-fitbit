@@ -68,7 +68,7 @@ class FitbitOauth2Client(object):
         try:
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
-        except TokenExpiredError as e:
+        except HTTPUnauthorized as e:
             self.refresh_token()
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
