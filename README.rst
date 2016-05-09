@@ -1,6 +1,10 @@
 python-fitbit
 =============
 
+.. image:: https://badges.gitter.im/orcasgit/python-fitbit.svg
+   :alt: Join the chat at https://gitter.im/orcasgit/python-fitbit
+   :target: https://gitter.im/orcasgit/python-fitbit?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://travis-ci.org/orcasgit/python-fitbit.svg?branch=master
    :target: https://travis-ci.org/orcasgit/python-fitbit
    :alt: Build Status
