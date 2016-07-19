@@ -10,6 +10,7 @@ except ImportError:
     from urllib import urlencode
 
 from requests_oauthlib import OAuth2, OAuth2Session
+from oauthlib.oauth2 import TokenExpiredError
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
                                HTTPServerError, HTTPConflict, HTTPNotFound,
@@ -66,7 +67,7 @@ class FitbitOauth2Client(object):
         try:
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
-        except HTTPUnauthorized as e:
+        except (HTTPUnauthorized, TokenExpiredError) as e:
             self.refresh_token()
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
