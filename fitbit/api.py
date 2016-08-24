@@ -26,6 +26,7 @@ class FitbitOauth2Client(object):
     authorization_url = "%s/oauth2/authorize" % AUTHORIZE_ENDPOINT
     access_token_url = request_token_url
     refresh_token_url = request_token_url
+    token = None
 
     def __init__(self, client_id, client_secret,
                  access_token=None, refresh_token=None,
