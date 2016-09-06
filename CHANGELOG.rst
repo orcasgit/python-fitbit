@@ -1,3 +1,7 @@
+0.2.3 (2016-07-06)
+==================
+* Refresh token when it expires
+
 0.2.2 (2016-03-30)
 ==================
 * Refresh token bugfixes
