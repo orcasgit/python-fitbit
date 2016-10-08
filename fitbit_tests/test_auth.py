@@ -62,15 +62,15 @@ class Auth2Test(TestCase):
 
     def test_auto_refresh_token_exception(self):
         """Test of auto_refresh with Unauthorized exception"""
-        # 1. first call to _make_request causes a HTTPUnauthorized
+        # 1. first call to _request causes a HTTPUnauthorized
         # 2. the token_refresh call is faked
-        # 3. the second call to _make_request returns a valid value
+        # 3. the second call to _request returns a valid value
         kwargs = self.client_kwargs
         kwargs['access_token'] = 'fake_access_token'
         kwargs['refresh_token'] = 'fake_refresh_token'
 
         fb = Fitbit(**kwargs)
-        with mock.patch.object(FitbitOauth2Client, '_make_request') as r:
+        with mock.patch.object(FitbitOauth2Client, '_request') as r:
             r.side_effect = [
                 HTTPUnauthorized(fake_response(401, b'correct_response')),
                 fake_response(200, 'correct_response')
@@ -91,15 +91,15 @@ class Auth2Test(TestCase):
 
     def test_auto_refresh_token_non_exception(self):
         """Test of auto_refersh when the exception doesn't fire"""
-        # 1. first call to _make_request causes a 401 expired token response
+        # 1. first call to _request causes a 401 expired token response
         # 2. the token_refresh call is faked
-        # 3. the second call to _make_request returns a valid value
+        # 3. the second call to _request returns a valid value
         kwargs = self.client_kwargs
         kwargs['access_token'] = 'fake_access_token'
         kwargs['refresh_token'] = 'fake_refresh_token'
 
         fb = Fitbit(**kwargs)
-        with mock.patch.object(FitbitOauth2Client, '_make_request') as r:
+        with mock.patch.object(FitbitOauth2Client, '_request') as r:
             r.side_effect = [
                 fake_response(401, b'{"errors": [{"message": "Access token expired: some_token_goes_here", "errorType": "expired_token", "fieldName": "access_token"}]}'),
                 fake_response(200, 'correct_response')
