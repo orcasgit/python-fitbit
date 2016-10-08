@@ -70,7 +70,7 @@ class FitbitOauth2Client(object):
             method = 'POST' if data else 'GET'
 
         try:
-            response = self._make_oauth2_request(method, url, data=data)
+            response = self._make_oauth2_request(method, url, data=data, **kwargs)
         except (HTTPUnauthorized, TokenExpiredError) as e:
             response = self._make_oauth2_request(method, url, refresh=True, data=data, **kwargs)
 
