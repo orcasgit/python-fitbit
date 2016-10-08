@@ -79,8 +79,8 @@ class FitbitOauth2Client(object):
         # using the current instance of the class this is a a general case)
         if response.status_code == 401:
             response_data = json.loads(response.content.decode('utf8'))
-            response_errors = response_data['errors']
             try:
+                response_errors = response_data['errors']
                 if (response_errors[0]['errorType'] == 'expired_token' and
                     response_errors[0]['message'].find('Access token expired:') == 0):
                     response = self._make_oauth2_request(method, url, refresh=True, data=data, **kwargs)
