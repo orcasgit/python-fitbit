@@ -70,7 +70,7 @@ class Auth2Test(TestCase):
         kwargs['refresh_token'] = 'fake_refresh_token'
 
         fb = Fitbit(**kwargs)
-        with mock.patch.object(FitbitOauth2Client, '_request') as r:
+        with mock.patch.object(FitbitOauth2Client, '_make_oauth2_request') as r:
             r.side_effect = [
                 HTTPUnauthorized(fake_response(401, b'correct_response')),
                 fake_response(200, 'correct_response')
@@ -99,7 +99,7 @@ class Auth2Test(TestCase):
         kwargs['refresh_token'] = 'fake_refresh_token'
 
         fb = Fitbit(**kwargs)
-        with mock.patch.object(FitbitOauth2Client, '_request') as r:
+        with mock.patch.object(FitbitOauth2Client, '_make_oauth2_request') as r:
             r.side_effect = [
                 fake_response(401, b'{"errors": [{"message": "Access token expired: some_token_goes_here", "errorType": "expired_token", "fieldName": "access_token"}]}'),
                 fake_response(200, 'correct_response')

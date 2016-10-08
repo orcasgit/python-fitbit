@@ -72,7 +72,7 @@ class FitbitOauth2Client(object):
         try:
             response = self._make_oauth2_request(method, url, data=data)
         except (HTTPUnauthorized, TokenExpiredError) as e:
-            response = self._make_oauth2_request(method, url, refresh=True, data=data)
+            response = self._make_oauth2_request(method, url, refresh=True, data=data, **kwargs)
 
         # yet another token expiration check
         # (the above try/except only applies if the expired token was obtained
@@ -83,7 +83,7 @@ class FitbitOauth2Client(object):
             try:
                 if (response_errors[0]['errorType'] == 'expired_token' and
                     response_errors[0]['message'].find('Access token expired:') == 0):
-                    response = self._make_oauth2_request(method, url, refresh=True, data=data)
+                    response = self._make_oauth2_request(method, url, refresh=True, data=data, **kwargs)
             except:
                 pass
 
