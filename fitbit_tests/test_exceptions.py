@@ -28,7 +28,7 @@ class ExceptionTest(unittest.TestCase):
         r.content = b'{"normal": "resource"}'
 
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
         f.user_profile_get()
 
         r.status_code = 202
@@ -47,7 +47,7 @@ class ExceptionTest(unittest.TestCase):
         r.content = b'{"normal": "resource"}'
 
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
 
         self.assertRaises(exceptions.HTTPUnauthorized, f.user_profile_get)
 
@@ -63,7 +63,7 @@ class ExceptionTest(unittest.TestCase):
 
         self.client_kwargs['oauth2'] = True
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
 
         r.status_code = 404
         self.assertRaises(exceptions.HTTPNotFound, f.user_profile_get)
@@ -86,7 +86,7 @@ class ExceptionTest(unittest.TestCase):
         r.headers = {'Retry-After': '10'}
 
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
 
         r.status_code = 429
         try:
@@ -105,7 +105,7 @@ class ExceptionTest(unittest.TestCase):
         r.content = b"iyam not jason"
 
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
         self.assertRaises(exceptions.BadResponse, f.user_profile_get)
 
     def test_delete_error(self):
@@ -117,5 +117,5 @@ class ExceptionTest(unittest.TestCase):
         r.content = b'{"it\'s all": "ok"}'
 
         f = Fitbit(**self.client_kwargs)
-        f.client._request = lambda *args, **kwargs: r
+        f.client._make_oauth2_request = lambda *args, **kwargs: r
         self.assertRaises(exceptions.DeleteError, f.delete_activities, 12345)
