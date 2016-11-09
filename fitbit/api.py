@@ -29,7 +29,7 @@ class FitbitOauth2Client(object):
     refresh_token_url = request_token_url
 
     def __init__(self, client_id, client_secret,
-                 access_token=None, refresh_token=None,
+                 access_token=None, refresh_token=None, refresh_cb=None,
                  *args, **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
@@ -47,6 +47,7 @@ class FitbitOauth2Client(object):
             'access_token': access_token,
             'refresh_token': refresh_token
         }
+        self.refresh_cb = refresh_cb
         self.oauth = OAuth2Session(client_id)
 
     def _request(self, method, url, **kwargs):
@@ -162,6 +163,9 @@ class FitbitOauth2Client(object):
             refresh_token=self.token['refresh_token'],
             auth=requests.auth.HTTPBasicAuth(self.client_id, self.client_secret)
         )
+
+        if self.refresh_cb:
+            self.refresh_cb(self.token)
 
         return self.token
 

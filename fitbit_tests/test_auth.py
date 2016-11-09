@@ -65,9 +65,11 @@ class Auth2Test(TestCase):
         # 1. first call to _request causes a HTTPUnauthorized
         # 2. the token_refresh call is faked
         # 3. the second call to _request returns a valid value
+        refresh_cb = mock.MagicMock()
         kwargs = self.client_kwargs
         kwargs['access_token'] = 'fake_access_token'
         kwargs['refresh_token'] = 'fake_refresh_token'
+        kwargs['refresh_cb'] = refresh_cb
 
         fb = Fitbit(**kwargs)
         with mock.patch.object(FitbitOauth2Client, '_request') as r:
@@ -88,15 +90,18 @@ class Auth2Test(TestCase):
             "fake_return_refresh_token", fb.client.token['refresh_token'])
         self.assertEqual(1, rt.call_count)
         self.assertEqual(2, r.call_count)
+        refresh_cb.assert_called_once_with(rt.return_value)
 
     def test_auto_refresh_token_non_exception(self):
         """Test of auto_refersh when the exception doesn't fire"""
         # 1. first call to _request causes a 401 expired token response
         # 2. the token_refresh call is faked
         # 3. the second call to _request returns a valid value
+        refresh_cb = mock.MagicMock()
         kwargs = self.client_kwargs
         kwargs['access_token'] = 'fake_access_token'
         kwargs['refresh_token'] = 'fake_refresh_token'
+        kwargs['refresh_cb'] = refresh_cb
 
         fb = Fitbit(**kwargs)
         with mock.patch.object(FitbitOauth2Client, '_request') as r:
@@ -117,6 +122,7 @@ class Auth2Test(TestCase):
             "fake_return_refresh_token", fb.client.token['refresh_token'])
         self.assertEqual(1, rt.call_count)
         self.assertEqual(2, r.call_count)
+        refresh_cb.assert_called_once_with(rt.return_value)
 
 
 class fake_response(object):
