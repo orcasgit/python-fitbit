@@ -1,3 +1,7 @@
+0.2.4 (2016-11-10)
+==================
+* Call a hook if it exists when tokens are refreshed
+
 0.2.3 (2016-07-06)
 ==================
 * Refresh token when it expires
