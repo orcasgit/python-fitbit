@@ -50,11 +50,16 @@ class FitbitOauth2Client(object):
         self.refresh_cb = refresh_cb
         self.oauth = OAuth2Session(client_id)
 
+    def _refresh_token_and_request(self, *args, **kwargs):
+        self.refresh_token()
+        return self._request(*args, **kwargs)
+
     def _request(self, method, url, **kwargs):
         """
         A simple wrapper around requests.
         """
-        return self.session.request(method, url, **kwargs)
+        return self.session.request(
+            method, url, auth=OAuth2(client_id=self.client_id, token=self.token), **kwargs)
 
     def make_request(self, url, data={}, method=None, **kwargs):
         """
@@ -66,24 +71,20 @@ class FitbitOauth2Client(object):
             method = 'POST' if data else 'GET'
 
         try:
-            auth = OAuth2(client_id=self.client_id, token=self.token)
-            response = self._request(method, url, data=data, auth=auth, **kwargs)
+            response = self._request(method, url, data=data, **kwargs)
         except (HTTPUnauthorized, TokenExpiredError) as e:
-            self.refresh_token()
-            auth = OAuth2(client_id=self.client_id, token=self.token)
-            response = self._request(method, url, data=data, auth=auth, **kwargs)
+            response = self._refresh_token_and_request(method, url, data=data, **kwargs)
 
         # yet another token expiration check
         # (the above try/except only applies if the expired token was obtained
         # using the current instance of the class this is a a general case)
         if response.status_code == 401:
-            d = json.loads(response.content.decode('utf8'))
+            response_data = json.loads(response.content.decode('utf8'))
             try:
-                if(d['errors'][0]['errorType'] == 'expired_token' and
-                    d['errors'][0]['message'].find('Access token expired:') == 0):
-                        self.refresh_token()
-                        auth = OAuth2(client_id=self.client_id, token=self.token)
-                        response = self._request(method, url, data=data, auth=auth, **kwargs)
+                response_errors = response_data['errors']
+                if (response_errors[0]['errorType'] == 'expired_token' and
+                    response_errors[0]['message'].find('Access token expired:') == 0):
+                    response = self._refresh_token_and_request(method, url, data=data, **kwargs)
             except:
                 pass
 
