@@ -210,12 +210,12 @@ class DeleteCollectionResourceTest(TestBase):
 class ResourceAccessTest(TestBase):
     """
     Class for testing the Fitbit Resource Access API:
-    https://wiki.fitbit.com/display/API/Fitbit+Resource+Access+API
+    https://dev.fitbit.com/docs/
     """
     def test_user_profile_get(self):
         """
         Test getting a user profile.
-        https://wiki.fitbit.com/display/API/API-Get-User-Info
+        https://dev.fitbit.com/docs/user/
 
         Tests the following HTTP method/URLs:
         GET https://api.fitbit.com/1/user/FOO/profile.json
@@ -230,7 +230,7 @@ class ResourceAccessTest(TestBase):
     def test_user_profile_update(self):
         """
         Test updating a user profile.
-        https://wiki.fitbit.com/display/API/API-Update-User-Info
+        https://dev.fitbit.com/docs/user/#update-profile
 
         Tests the following HTTP method/URLs:
         POST https://api.fitbit.com/1/user/-/profile.json
@@ -441,7 +441,7 @@ class ResourceAccessTest(TestBase):
     def test_bodyweight(self):
         """
         Tests for retrieving body weight measurements.
-        https://wiki.fitbit.com/display/API/API-Get-Body-Weight
+        https://dev.fitbit.com/docs/body/#get-weight-logs
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/body/log/weight/date/1992-05-12.json
         GET https://api.fitbit.com/1/user/BAR/body/log/weight/date/1992-05-12/1998-12-31.json
@@ -483,7 +483,7 @@ class ResourceAccessTest(TestBase):
     def test_bodyfat(self):
         """
         Tests for retrieving bodyfat measurements.
-        https://wiki.fitbit.com/display/API/API-Get-Body-Fat
+        https://dev.fitbit.com/docs/body/#get-body-fat-logs
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/body/log/fat/date/1992-05-12.json
         GET https://api.fitbit.com/1/user/BAR/body/log/fat/date/1992-05-12/1998-12-31.json
@@ -608,7 +608,7 @@ class ResourceAccessTest(TestBase):
 class SubscriptionsTest(TestBase):
     """
     Class for testing the Fitbit Subscriptions API:
-    https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
+    https://dev.fitbit.com/docs/subscriptions/
     """
 
     def test_subscriptions(self):
@@ -637,7 +637,7 @@ class SubscriptionsTest(TestBase):
 class PartnerAPITest(TestBase):
     """
     Class for testing the Fitbit Partner API:
-    https://wiki.fitbit.com/display/API/Fitbit+Partner+API
+    https://dev.fitbit.com/docs/
     """
 
     def _test_intraday_timeseries(self, resource, base_date, detail_level,
@@ -652,7 +652,7 @@ class PartnerAPITest(TestBase):
     def test_intraday_timeseries(self):
         """
         Intraday Time Series tests:
-        https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
+        https://dev.fitbit.com/docs/activity/#get-activity-intraday-time-series
 
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
