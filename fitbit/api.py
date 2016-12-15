@@ -368,8 +368,8 @@ class Fitbit(object):
         """
         Implements the following APIs
 
-        * https://dev.fitbit.com/docs/body/#body-fat
-        * https://dev.fitbit.com/docs/body/#log-body-fat
+        * https://dev.fitbit.com/docs/body/#get-body-goals
+        * https://dev.fitbit.com/docs/body/#update-body-fat-goal
 
         Pass no arguments to get the body fat goal. Pass a ``fat`` argument
         to update the body fat goal.
@@ -383,8 +383,9 @@ class Fitbit(object):
         """
         Implements the following APIs
 
-        https://dev.fitbit.com/docs/body/#goals
-
+        * https://dev.fitbit.com/docs/body/#get-body-goals                    
+        * https://dev.fitbit.com/docs/body/#update-weight-goal
+        
         Pass no arguments to get the body weight goal. Pass ``start_date``,
         ``start_weight`` and optionally ``weight`` to set the weight goal.
         ``weight`` is required if it hasn't been set yet.
@@ -406,9 +407,10 @@ class Fitbit(object):
     def activities_daily_goal(self, calories_out=None, active_minutes=None,
                               floors=None, distance=None, steps=None):
         """
-        Implements the following APIs
+        Implements the following APIs for period equal to daily
 
-        https://dev.fitbit.com/docs/activity/#activity-goals
+        https://dev.fitbit.com/docs/activity/#get-activity-goals
+        https://dev.fitbit.com/docs/activity/#update-activity-goals
 
         Pass no arguments to get the daily activities goal. Pass any one of
         the optional arguments to set that component of the daily activities
@@ -432,9 +434,10 @@ class Fitbit(object):
 
     def activities_weekly_goal(self, distance=None, floors=None, steps=None):
         """
-        Implements the following APIs
+        Implements the following APIs for period equal to weekly
 
-        https://dev.fitbit.com/docs/activity/#activity-goals
+        https://dev.fitbit.com/docs/activity/#get-activity-goals
+        https://dev.fitbit.com/docs/activity/#update-activity-goals
 
         Pass no arguments to get the weekly activities goal. Pass any one of
         the optional arguments to set that component of the weekly activities
@@ -453,7 +456,8 @@ class Fitbit(object):
         """
         Implements the following APIs
 
-		https://dev.fitbit.com/docs/food-logging/#get-food-goals
+        https://dev.fitbit.com/docs/food-logging/#get-food-goals
+        https://dev.fitbit.com/docs/food-logging/#update-food-goal
 
         Pass no arguments to get the food goal. Pass at least ``calories`` or
         ``intensity`` and optionally ``personalized`` to update the food goal.
@@ -474,6 +478,7 @@ class Fitbit(object):
         Implements the following APIs
 
         https://dev.fitbit.com/docs/food-logging/#get-water-goal
+        https://dev.fitbit.com/docs/food-logging/#update-water-goal
 
         Pass no arguments to get the water goal. Pass ``target`` to update it.
 
@@ -486,7 +491,7 @@ class Fitbit(object):
     def time_series(self, resource, user_id=None, base_date='today',
                     period=None, end_date=None):
         """
-        The time series is a LOT of methods, (documented at url below) so they
+        The time series is a LOT of methods, (documented at urls below) so they
         don't get their own method. They all follow the same patterns, and
         return similar formats.
 
@@ -494,6 +499,10 @@ class Fitbit(object):
         and a 1d period.
 
         https://dev.fitbit.com/docs/activity/#activity-time-series
+        https://dev.fitbit.com/docs/body/#body-time-series
+        https://dev.fitbit.com/docs/food-logging/#food-or-water-time-series
+        https://dev.fitbit.com/docs/heart-rate/#heart-rate-time-series
+        https://dev.fitbit.com/docs/sleep/#sleep-time-series
         """
         if period and end_date:
             raise TypeError("Either end_date or period can be specified, not both")
