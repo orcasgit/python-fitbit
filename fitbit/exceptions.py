@@ -15,6 +15,13 @@ class DeleteError(Exception):
     pass
 
 
+class Timeout(Exception):
+    """
+    Used when a timeout occurs.
+    """
+    pass
+
+
 class HTTPException(Exception):
     def __init__(self, response, *args, **kwargs):
         try:
