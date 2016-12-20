@@ -1,8 +1,9 @@
 from unittest import TestCase
 import datetime
 import mock
+import requests
 from fitbit import Fitbit
-from fitbit.exceptions import DeleteError
+from fitbit.exceptions import DeleteError, Timeout
 
 URLBASE = "%s/%s/user" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
 
@@ -22,6 +23,49 @@ class TestBase(TestCase):
 
     def verify_raises(self, funcname, args, kwargs, exc):
         self.assertRaises(exc, getattr(self.fb, funcname), *args, **kwargs)
+
+
+class TimeoutTest(TestCase):
+
+    def setUp(self):
+        self.fb = Fitbit('x', 'y')
+        self.fb_timeout = Fitbit('x', 'y', timeout=10)
+
+        self.test_url = 'invalid://do.not.connect'
+
+    def test_fb_without_timeout(self):
+        with mock.patch.object(self.fb.client.session, 'request') as request:
+            mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = b'{}'
+            request.return_value = mock_response
+            result = self.fb.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertNotIn('timeout', request.call_args[1])
+        self.assertEqual({}, result)
+
+    def test_fb_with_timeout__timing_out(self):
+        with mock.patch.object(self.fb_timeout.client.session, 'request') as request:
+            request.side_effect = requests.Timeout('Timed out')
+            with self.assertRaisesRegexp(Timeout, 'Timed out'):
+                self.fb_timeout.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertEqual(10, request.call_args[1]['timeout'])
+
+    def test_fb_with_timeout__not_timing_out(self):
+        with mock.patch.object(self.fb_timeout.client.session, 'request') as request:
+            mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = b'{}'
+            request.return_value = mock_response
+
+            result = self.fb_timeout.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertEqual(10, request.call_args[1]['timeout'])
+        self.assertEqual({}, result)
 
 
 class APITest(TestBase):

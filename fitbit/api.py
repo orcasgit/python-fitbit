@@ -14,7 +14,7 @@ from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
 from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
                                HTTPUnauthorized, HTTPForbidden,
                                HTTPServerError, HTTPConflict, HTTPNotFound,
-                               HTTPTooManyRequests)
+                               HTTPTooManyRequests, Timeout)
 from fitbit.utils import curry
 
 
@@ -49,12 +49,19 @@ class FitbitOauth2Client(object):
         }
         self.refresh_cb = refresh_cb
         self.oauth = OAuth2Session(client_id)
+        self.timeout = kwargs.get("timeout", None)
 
     def _request(self, method, url, **kwargs):
         """
         A simple wrapper around requests.
         """
-        return self.session.request(method, url, **kwargs)
+        if self.timeout is not None and 'timeout' not in kwargs:
+            kwargs['timeout'] = self.timeout
+
+        try:
+            return self.session.request(method, url, **kwargs)
+        except requests.Timeout as e:
+            raise Timeout(*e.args)
 
     def make_request(self, url, data={}, method=None, **kwargs):
         """
