@@ -2,6 +2,7 @@
 import datetime
 import json
 import requests
+from oauthlib.oauth2 import MissingTokenError
 
 try:
     from urllib.parse import urlencode
@@ -27,6 +28,7 @@ class FitbitOauth2Client(object):
     authorization_url = "%s/oauth2/authorize" % AUTHORIZE_ENDPOINT
     access_token_url = request_token_url
     refresh_token_url = request_token_url
+    token = None
 
     def __init__(self, client_id, client_secret,
                  access_token=None, refresh_token=None, refresh_cb=None,
@@ -91,6 +93,8 @@ class FitbitOauth2Client(object):
                         self.refresh_token()
                         auth = OAuth2(client_id=self.client_id, token=self.token)
                         response = self._request(method, url, data=data, auth=auth, **kwargs)
+            except MissingTokenError as e:
+                raise e
             except:
                 pass
 
