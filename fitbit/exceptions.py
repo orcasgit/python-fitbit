@@ -75,3 +75,22 @@ class HTTPServerError(HTTPException):
     """Generic >= 500 error
     """
     pass
+
+
+def detect_and_raise_error(response):
+    if response.status_code == 401:
+        raise HTTPUnauthorized(response)
+    elif response.status_code == 403:
+        raise HTTPForbidden(response)
+    elif response.status_code == 404:
+        raise HTTPNotFound(response)
+    elif response.status_code == 409:
+        raise HTTPConflict(response)
+    elif response.status_code == 429:
+        exc = HTTPTooManyRequests(response)
+        exc.retry_after_secs = int(response.headers['Retry-After'])
+        raise exc
+    elif response.status_code >= 500:
+        raise HTTPServerError(response)
+    elif response.status_code >= 400:
+        raise HTTPBadRequest(response)

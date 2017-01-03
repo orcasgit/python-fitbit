@@ -9,13 +9,12 @@ except ImportError:
     # Python 2.x
     from urllib import urlencode
 
+from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2, OAuth2Session
 from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
-from fitbit.exceptions import (BadResponse, DeleteError, HTTPBadRequest,
-                               HTTPUnauthorized, HTTPForbidden,
-                               HTTPServerError, HTTPConflict, HTTPNotFound,
-                               HTTPTooManyRequests, Timeout)
-from fitbit.utils import curry
+
+from . import exceptions
+from .utils import curry
 
 
 class FitbitOauth2Client(object):
@@ -61,7 +60,7 @@ class FitbitOauth2Client(object):
         try:
             return self.session.request(method, url, **kwargs)
         except requests.Timeout as e:
-            raise Timeout(*e.args)
+            raise exceptions.Timeout(*e.args)
 
     def make_request(self, url, data={}, method=None, **kwargs):
         """
@@ -75,7 +74,7 @@ class FitbitOauth2Client(object):
         try:
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
-        except (HTTPUnauthorized, TokenExpiredError) as e:
+        except (exceptions.HTTPUnauthorized, TokenExpiredError) as e:
             self.refresh_token()
             auth = OAuth2(client_id=self.client_id, token=self.token)
             response = self._request(method, url, data=data, auth=auth, **kwargs)
@@ -94,23 +93,8 @@ class FitbitOauth2Client(object):
             except:
                 pass
 
-        if response.status_code == 401:
-            raise HTTPUnauthorized(response)
-        elif response.status_code == 403:
-            raise HTTPForbidden(response)
-        elif response.status_code == 404:
-            raise HTTPNotFound(response)
-        elif response.status_code == 409:
-            raise HTTPConflict(response)
-        elif response.status_code == 429:
-            exc = HTTPTooManyRequests(response)
-            exc.retry_after_secs = int(response.headers['Retry-After'])
-            raise exc
+        exceptions.detect_and_raise_error(response)
 
-        elif response.status_code >= 500:
-            raise HTTPServerError(response)
-        elif response.status_code >= 400:
-            raise HTTPBadRequest(response)
         return response
 
     def authorize_token_url(self, scope=None, redirect_uri=None, **kwargs):
@@ -168,7 +152,7 @@ class FitbitOauth2Client(object):
         self.token = self.oauth.refresh_token(
             self.refresh_token_url,
             refresh_token=self.token['refresh_token'],
-            auth=requests.auth.HTTPBasicAuth(self.client_id, self.client_secret)
+            auth=HTTPBasicAuth(self.client_id, self.client_secret)
         )
 
         if self.refresh_cb:
@@ -244,11 +228,11 @@ class Fitbit(object):
             if response.status_code == 204:
                 return True
             else:
-                raise DeleteError(response)
+                raise exceptions.DeleteError(response)
         try:
             rep = json.loads(response.content.decode('utf8'))
         except ValueError:
-            raise BadResponse
+            raise exceptions.BadResponse
 
         return rep
 
@@ -390,9 +374,9 @@ class Fitbit(object):
         """
         Implements the following APIs
 
-        * https://dev.fitbit.com/docs/body/#get-body-goals                    
+        * https://dev.fitbit.com/docs/body/#get-body-goals
         * https://dev.fitbit.com/docs/body/#update-weight-goal
-        
+
         Pass no arguments to get the body weight goal. Pass ``start_date``,
         ``start_weight`` and optionally ``weight`` to set the weight goal.
         ``weight`` is required if it hasn't been set yet.
