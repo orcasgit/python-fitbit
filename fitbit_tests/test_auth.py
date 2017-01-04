@@ -29,14 +29,13 @@ class Auth2Test(TestCase):
     def test_authorize_token_url(self):
         # authorize_token_url calls oauth and returns a URL
         fb = Fitbit(**self.client_kwargs)
-        retval = fb.client.authorize_token_url('http://127.0.0.1:8080')
+        retval = fb.client.authorize_token_url()
         self.assertEqual(retval[0], 'https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=fake_id&redirect_uri=http%3A%2F%2F127.0.0.1%3A8080&scope=activity+nutrition+heartrate+location+nutrition+profile+settings+sleep+social+weight&state='+retval[1])
 
     def test_authorize_token_url_with_scope(self):
         # authorize_token_url calls oauth and returns a URL
         fb = Fitbit(**self.client_kwargs)
-        retval = fb.client.authorize_token_url(
-            'http://127.0.0.1:8080', scope=self.client_kwargs['scope'])
+        retval = fb.client.authorize_token_url(scope=self.client_kwargs['scope'])
         self.assertEqual(retval[0], 'https://www.fitbit.com/oauth2/authorize?response_type=code&client_id=fake_id&redirect_uri=http%3A%2F%2F127.0.0.1%3A8080&scope='+ str(self.client_kwargs['scope'][0])+ '&state='+retval[1])
 
     def test_fetch_access_token(self):

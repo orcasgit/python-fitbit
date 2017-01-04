@@ -29,8 +29,8 @@ class FitbitOauth2Client(object):
     refresh_token_url = request_token_url
 
     def __init__(self, client_id, client_secret, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None, *args,
-            **kwargs):
+            refresh_token=None, expires_at=None, refresh_cb=None,
+            redirect_uri=None, *args, **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
         you have them to access user data. Specify just the first 2 parameters
@@ -54,6 +54,7 @@ class FitbitOauth2Client(object):
             auto_refresh_url=self.refresh_token_url,
             token_updater=refresh_cb,
             token=token,
+            redirect_uri=redirect_uri,
         ))
         self.timeout = kwargs.get("timeout", None)
 
@@ -79,12 +80,13 @@ class FitbitOauth2Client(object):
         except requests.Timeout as e:
             raise exceptions.Timeout(*e.args)
 
-    def make_request(self, url, data={}, method=None, **kwargs):
+    def make_request(self, url, data=None, method=None, **kwargs):
         """
         Builds and makes the OAuth2 Request, catches errors
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
+        data = data or {}
         method = method or ('POST' if data else 'GET')
         response = self._request(method, url, data=data, **kwargs)
 
@@ -92,13 +94,15 @@ class FitbitOauth2Client(object):
 
         return response
 
-    def authorize_token_url(self, redirect_uri, scope=None, **kwargs):
+    def authorize_token_url(self, scope=None, redirect_uri=None, **kwargs):
         """Step 1: Return the URL the user needs to go to in order to grant us
         authorization to look at their data.  Then redirect the user to that
         URL, open their browser to it, or tell them to copy the URL into their
         browser.
             - scope: pemissions that that are being requested [default ask all]
-            - redirect_uri: url to which the reponse will posted. required
+            - redirect_uri: url to which the reponse will posted. required here
+              unless you specify only one Callback URL on the fitbit app or
+              you already passed it to the constructor
             for more info see https://dev.fitbit.com/docs/oauth2/
         """
 
@@ -114,17 +118,21 @@ class FitbitOauth2Client(object):
             "social",
             "weight",
         ]
-        self.session.redirect_uri = redirect_uri
+
+        if redirect_uri:
+            self.session.redirect_uri = redirect_uri
 
         return self.session.authorization_url(self.authorization_url, **kwargs)
 
-    def fetch_access_token(self, code):
+    def fetch_access_token(self, code, redirect_uri=None):
 
         """Step 2: Given the code from fitbit from step 1, call
         fitbit again and returns an access token object. Extract the needed
         information from that and save it to use in future API calls.
         the token is internally saved
         """
+        if redirect_uri:
+            self.session.redirect_uri = redirect_uri
         self.session.fetch_token(
             self.access_token_url,
             username=self.client_id,
