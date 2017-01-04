@@ -14,6 +14,7 @@ from requests_oauthlib import OAuth2, OAuth2Session
 from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
 
 from . import exceptions
+from .compliance import fitbit_compliance_fix
 from .utils import curry
 
 
@@ -27,9 +28,9 @@ class FitbitOauth2Client(object):
     access_token_url = request_token_url
     refresh_token_url = request_token_url
 
-    def __init__(self, client_id, client_secret,
-                 access_token=None, refresh_token=None, refresh_cb=None,
-                 *args, **kwargs):
+    def __init__(self, client_id, client_secret, access_token=None,
+            refresh_token=None, expires_at=None, refresh_cb=None, *args,
+            **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
         you have them to access user data. Specify just the first 2 parameters
@@ -39,15 +40,21 @@ class FitbitOauth2Client(object):
             - access_token, refresh_token are obtained after the user grants permission
         """
 
-        self.session = requests.Session()
-        self.client_id = client_id
-        self.client_secret = client_secret
-        self.token = {
-            'access_token': access_token,
-            'refresh_token': refresh_token
-        }
-        self.refresh_cb = refresh_cb
-        self.oauth = OAuth2Session(client_id)
+        self.client_id, self.client_secret = client_id, client_secret
+        token = {}
+        if access_token and refresh_token:
+            token.update({
+                'access_token': access_token,
+                'refresh_token': refresh_token
+            })
+        if expires_at:
+            token['expires_at'] = expires_at
+        self.session = fitbit_compliance_fix(OAuth2Session(
+            client_id,
+            auto_refresh_url=self.refresh_token_url,
+            token_updater=refresh_cb,
+            token=token,
+        ))
         self.timeout = kwargs.get("timeout", None)
 
     def _request(self, method, url, **kwargs):
@@ -58,7 +65,17 @@ class FitbitOauth2Client(object):
             kwargs['timeout'] = self.timeout
 
         try:
-            return self.session.request(method, url, **kwargs)
+            response = self.session.request(method, url, **kwargs)
+
+            # If our current token has no expires_at, or something manages to slip
+            # through that check
+            if response.status_code == 401:
+                d = json.loads(response.content.decode('utf8'))
+                if d['errors'][0]['errorType'] == 'expired_token':
+                    self.refresh_token()
+                    response = self.session.request(method, url, **kwargs)
+
+            return response
         except requests.Timeout as e:
             raise exceptions.Timeout(*e.args)
 
@@ -68,97 +85,68 @@ class FitbitOauth2Client(object):
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
-        if not method:
-            method = 'POST' if data else 'GET'
-
-        try:
-            auth = OAuth2(client_id=self.client_id, token=self.token)
-            response = self._request(method, url, data=data, auth=auth, **kwargs)
-        except (exceptions.HTTPUnauthorized, TokenExpiredError) as e:
-            self.refresh_token()
-            auth = OAuth2(client_id=self.client_id, token=self.token)
-            response = self._request(method, url, data=data, auth=auth, **kwargs)
-
-        # yet another token expiration check
-        # (the above try/except only applies if the expired token was obtained
-        # using the current instance of the class this is a a general case)
-        if response.status_code == 401:
-            d = json.loads(response.content.decode('utf8'))
-            try:
-                if(d['errors'][0]['errorType'] == 'expired_token' and
-                    d['errors'][0]['message'].find('Access token expired:') == 0):
-                        self.refresh_token()
-                        auth = OAuth2(client_id=self.client_id, token=self.token)
-                        response = self._request(method, url, data=data, auth=auth, **kwargs)
-            except:
-                pass
+        method = method or ('POST' if data else 'GET')
+        response = self._request(method, url, data=data, **kwargs)
 
         exceptions.detect_and_raise_error(response)
 
         return response
 
-    def authorize_token_url(self, scope=None, redirect_uri=None, **kwargs):
+    def authorize_token_url(self, redirect_uri, scope=None, **kwargs):
         """Step 1: Return the URL the user needs to go to in order to grant us
         authorization to look at their data.  Then redirect the user to that
         URL, open their browser to it, or tell them to copy the URL into their
         browser.
             - scope: pemissions that that are being requested [default ask all]
-            - redirect_uri: url to which the reponse will posted
-                            required only if your app does not have one
+            - redirect_uri: url to which the reponse will posted. required
             for more info see https://dev.fitbit.com/docs/oauth2/
         """
 
-        # the scope parameter is caussing some issues when refreshing tokens
-        # so not saving it
-        old_scope = self.oauth.scope
-        old_redirect = self.oauth.redirect_uri
-        if scope:
-            self.oauth.scope = scope
-        else:
-            self.oauth.scope = [
-                "activity", "nutrition", "heartrate", "location", "nutrition",
-                "profile", "settings", "sleep", "social", "weight"
-            ]
+        self.session.scope = scope or [
+            "activity",
+            "nutrition",
+            "heartrate",
+            "location",
+            "nutrition",
+            "profile",
+            "settings",
+            "sleep",
+            "social",
+            "weight",
+        ]
+        self.session.redirect_uri = redirect_uri
 
-        if redirect_uri:
-            self.oauth.redirect_uri = redirect_uri
+        return self.session.authorization_url(self.authorization_url, **kwargs)
 
-        out = self.oauth.authorization_url(self.authorization_url, **kwargs)
-        self.oauth.scope = old_scope
-        self.oauth.redirect_uri = old_redirect
-        return(out)
-
-    def fetch_access_token(self, code, redirect_uri):
+    def fetch_access_token(self, code):
 
         """Step 2: Given the code from fitbit from step 1, call
         fitbit again and returns an access token object. Extract the needed
         information from that and save it to use in future API calls.
         the token is internally saved
         """
-        auth = OAuth2Session(self.client_id, redirect_uri=redirect_uri)
-        self.token = auth.fetch_token(
+        self.session.fetch_token(
             self.access_token_url,
             username=self.client_id,
             password=self.client_secret,
             code=code)
 
-        return self.token
+        return self.session.token
 
     def refresh_token(self):
         """Step 3: obtains a new access_token from the the refresh token
         obtained in step 2.
         the token is internally saved
         """
-        self.token = self.oauth.refresh_token(
+        self.session.refresh_token(
             self.refresh_token_url,
-            refresh_token=self.token['refresh_token'],
             auth=HTTPBasicAuth(self.client_id, self.client_secret)
         )
 
-        if self.refresh_cb:
-            self.refresh_cb(self.token)
+        if self.session.token_updater:
+            self.session.token_updater(self.session.token)
 
-        return self.token
+        return self.session.token
 
 
 class Fitbit(object):

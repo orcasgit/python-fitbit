@@ -7,9 +7,8 @@ import traceback
 import webbrowser
 
 from base64 import b64encode
-from fitbit.api import FitbitOauth2Client
+from fitbit.api import Fitbit
 from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
-from requests_oauthlib import OAuth2Session
 
 
 class OAuth2Server:
@@ -22,14 +21,15 @@ class OAuth2Server:
             <br/><h3>You can close this window</h3>"""
         self.failure_html = """
             <h1>ERROR: %s</h1><br/><h3>You can close this window</h3>%s"""
-        self.oauth = FitbitOauth2Client(client_id, client_secret)
+
+        self.fitbit = Fitbit(client_id, client_secret)
 
     def browser_authorize(self):
         """
         Open a browser to the authorization url and spool up a CherryPy
         server to accept the response
         """
-        url, _ = self.oauth.authorize_token_url(redirect_uri=self.redirect_uri)
+        url, _ = self.fitbit.client.authorize_token_url(self.redirect_uri)
         # Open the web browser in a new thread for command-line browser support
         threading.Timer(1, webbrowser.open, args=(url,)).start()
         cherrypy.quickstart(self)
@@ -43,7 +43,7 @@ class OAuth2Server:
         error = None
         if code:
             try:
-                self.oauth.fetch_access_token(code, self.redirect_uri)
+                self.fitbit.client.fetch_access_token(code)
             except MissingTokenError:
                 error = self._fmt_failure(
                     'Missing access token parameter.</br>Please check that '
@@ -76,6 +76,10 @@ if __name__ == '__main__':
     server = OAuth2Server(*sys.argv[1:])
     server.browser_authorize()
 
-    print('FULL RESULTS = %s' % server.oauth.token)
-    print('ACCESS_TOKEN = %s' % server.oauth.token['access_token'])
-    print('REFRESH_TOKEN = %s' % server.oauth.token['refresh_token'])
+    profile = server.fitbit.user_profile_get()
+    print('You are authorized to access data for the user: {}'.format(
+        profile['user']['fullName']))
+
+    print('TOKEN\n=====\n')
+    for key, value in server.fitbit.client.session.token.items():
+        print('{} = {}'.format(key, value))
