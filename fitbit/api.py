@@ -133,28 +133,26 @@ class FitbitOauth2Client(object):
         """
         if redirect_uri:
             self.session.redirect_uri = redirect_uri
-        self.session.fetch_token(
+        return self.session.fetch_token(
             self.access_token_url,
             username=self.client_id,
             password=self.client_secret,
             code=code)
-
-        return self.session.token
 
     def refresh_token(self):
         """Step 3: obtains a new access_token from the the refresh token
         obtained in step 2.
         the token is internally saved
         """
-        self.session.refresh_token(
+        token = self.session.refresh_token(
             self.refresh_token_url,
             auth=HTTPBasicAuth(self.client_id, self.client_secret)
         )
 
         if self.session.token_updater:
-            self.session.token_updater(self.session.token)
+            self.session.token_updater(token)
 
-        return self.session.token
+        return token
 
 
 class Fitbit(object):
