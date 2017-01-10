@@ -6,11 +6,9 @@ import requests_mock
 from datetime import datetime
 from freezegun import freeze_time
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
-from requests_oauthlib import OAuth2Session
 from unittest import TestCase
 
-from fitbit import Fitbit, FitbitOauth2Client
-from fitbit.exceptions import HTTPUnauthorized
+from fitbit import Fitbit
 
 
 class Auth2Test(TestCase):
@@ -56,6 +54,7 @@ class Auth2Test(TestCase):
         kwargs = copy.copy(self.client_kwargs)
         kwargs['access_token'] = 'fake_access_token'
         kwargs['refresh_token'] = 'fake_refresh_token'
+        kwargs['refresh_cb'] = lambda x: None
         fb = Fitbit(**kwargs)
         with requests_mock.mock() as m:
             m.post(fb.client.refresh_token_url, text=json.dumps({

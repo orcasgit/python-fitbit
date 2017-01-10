@@ -10,8 +10,7 @@ except ImportError:
     from urllib import urlencode
 
 from requests.auth import HTTPBasicAuth
-from requests_oauthlib import OAuth2, OAuth2Session
-from oauthlib.oauth2.rfc6749.errors import TokenExpiredError
+from requests_oauthlib import OAuth2Session
 
 from . import exceptions
 from .compliance import fitbit_compliance_fix
@@ -144,7 +143,7 @@ class FitbitOauth2Client(object):
         obtained in step 2. Only do the refresh if there is `token_updater(),`
         which saves the token.
         """
-        token = None
+        token = {}
         if self.session.token_updater:
             token = self.session.refresh_token(
                 self.refresh_token_url,
