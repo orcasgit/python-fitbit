@@ -144,8 +144,8 @@ class FitbitOauth2Client(object):
         obtained in step 2. Only do the refresh if there is `token_updater(),`
         which saves the token.
         """
+        token = None
         if self.session.token_updater:
-
             token = self.session.refresh_token(
                 self.refresh_token_url,
                 auth=HTTPBasicAuth(self.client_id, self.client_secret)
