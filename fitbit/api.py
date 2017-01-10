@@ -141,15 +141,15 @@ class FitbitOauth2Client(object):
 
     def refresh_token(self):
         """Step 3: obtains a new access_token from the the refresh token
-        obtained in step 2.
-        the token is internally saved
+        obtained in step 2. Only do the refresh if there is `token_updater(),`
+        which saves the token.
         """
-        token = self.session.refresh_token(
-            self.refresh_token_url,
-            auth=HTTPBasicAuth(self.client_id, self.client_secret)
-        )
-
         if self.session.token_updater:
+
+            token = self.session.refresh_token(
+                self.refresh_token_url,
+                auth=HTTPBasicAuth(self.client_id, self.client_secret)
+            )
             self.session.token_updater(token)
 
         return token
