@@ -6,6 +6,7 @@ import requests_mock
 from datetime import datetime
 from freezegun import freeze_time
 from oauthlib.oauth2.rfc6749.errors import InvalidGrantError
+from requests.auth import _basic_auth_str
 from unittest import TestCase
 
 from fitbit import Fitbit
@@ -95,6 +96,15 @@ class Auth2Test(TestCase):
             }
             m.post(fb.client.refresh_token_url, text=json.dumps(token))
             retval = fb.make_request(profile_url)
+
+        self.assertEqual(m.request_history[0].path, '/oauth2/token')
+        self.assertEqual(
+            m.request_history[0].headers['Authorization'],
+            _basic_auth_str(
+                self.client_kwargs['client_id'],
+                self.client_kwargs['client_secret']
+            )
+        )
         self.assertEqual(retval['user']['aboutMe'], "python-fitbit developer")
         self.assertEqual("fake_return_access_token", token['access_token'])
         self.assertEqual("fake_return_refresh_token", token['refresh_token'])
@@ -134,6 +144,15 @@ class Auth2Test(TestCase):
             }
             m.post(fb.client.refresh_token_url, text=json.dumps(token))
             retval = fb.make_request(profile_url)
+
+        self.assertEqual(m.request_history[1].path, '/oauth2/token')
+        self.assertEqual(
+            m.request_history[1].headers['Authorization'],
+            _basic_auth_str(
+                self.client_kwargs['client_id'],
+                self.client_kwargs['client_secret']
+            )
+        )
         self.assertEqual(retval['user']['aboutMe'], "python-fitbit developer")
         self.assertEqual("fake_return_access_token", token['access_token'])
         self.assertEqual("fake_return_refresh_token", token['refresh_token'])

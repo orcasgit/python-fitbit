@@ -87,7 +87,14 @@ class FitbitOauth2Client(object):
         """
         data = data or {}
         method = method or ('POST' if data else 'GET')
-        response = self._request(method, url, data=data, **kwargs)
+        response = self._request(
+            method,
+            url,
+            data=data,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            **kwargs
+        )
 
         exceptions.detect_and_raise_error(response)
 
