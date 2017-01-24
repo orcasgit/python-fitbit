@@ -215,7 +215,16 @@ class Fitbit(object):
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
         self.system = system
-        self.client = FitbitOauth2Client(client_id, client_secret, **kwargs)
+        self.client = FitbitOauth2Client(
+            client_id,
+            client_secret,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=expires_at,
+            refresh_cb=refresh_cb,
+            redirect_uri=redirect_uri,
+            **kwargs
+        )
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual
