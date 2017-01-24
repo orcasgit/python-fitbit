@@ -1,4 +1,5 @@
 import unittest
+import json
 import mock
 import requests
 import sys
@@ -44,7 +45,14 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.status_code = 401
-        r.content = b'{"normal": "resource"}'
+        json_response = {
+            "errors": [{
+                "errorType": "unauthorized",
+                "message": "Unknown auth error"}
+            ],
+            "normal": "resource"
+        }
+        r.content = json.dumps(json_response).encode('utf8')
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -52,6 +60,11 @@ class ExceptionTest(unittest.TestCase):
         self.assertRaises(exceptions.HTTPUnauthorized, f.user_profile_get)
 
         r.status_code = 403
+        json_response['errors'][0].update({
+            "errorType": "forbidden",
+            "message": "Forbidden"
+        })
+        r.content = json.dumps(json_response).encode('utf8')
         self.assertRaises(exceptions.HTTPForbidden, f.user_profile_get)
 
     def test_response_error(self):
