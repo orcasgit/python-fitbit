@@ -162,6 +162,27 @@ class FitbitOauth2Client(object):
 
 
 class Fitbit(object):
+    """
+    Before using this class, create a Fitbit app
+    `here <https://dev.fitbit.com/apps/new>`_. There you will get the client id
+    and secret needed to instantiate this class. When first authorizing a user,
+    make sure to pass the `redirect_uri` keyword arg so fitbit will know where
+    to return to when the authorization is complete. See
+    `gather_keys_oauth2.py <https://github.com/orcasgit/python-fitbit/blob/master/gather_keys_oauth2.py>`_
+    for a reference implementation of the authorization process. You should
+    save ``access_token``, ``refresh_token``, and ``expires_at`` from the
+    returned token for each user you authorize.
+
+    When instantiating this class for use with an already authorized user, pass
+    in the ``access_token``, ``refresh_token``, and ``expires_at`` keyword
+    arguments. We also strongly recommend passing in a ``refresh_cb`` keyword
+    argument, which should be a function taking one argument: a token dict.
+    When that argument is present, we will automatically refresh the access
+    token when needed and call this function so that you can save the updated
+    token data. If you don't save the updated information, then you could end
+    up with invalid access and refresh tokens, and the only way to recover from
+    that is to reauthorize the user.
+    """
     US = 'en_US'
     METRIC = 'en_UK'
 
@@ -187,12 +208,23 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, client_id, client_secret, system=US, **kwargs):
+    def __init__(self, client_id, client_secret, access_token=None,
+            refresh_token=None, expires_at=None, refresh_cb=None,
+            redirect_uri=None, system=US, **kwargs):
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
         self.system = system
-        self.client = FitbitOauth2Client(client_id, client_secret, **kwargs)
+        self.client = FitbitOauth2Client(
+            client_id,
+            client_secret,
+            access_token=access_token,
+            refresh_token=refresh_token,
+            expires_at=expires_at,
+            refresh_cb=refresh_cb,
+            redirect_uri=redirect_uri,
+            **kwargs
+        )
 
         # All of these use the same patterns, define the method for accessing
         # creating and deleting records once, and use curry to make individual

@@ -1,3 +1,8 @@
+0.3.0 (2017-01-24)
+==================
+* Surface errors better
+* Use requests-oauthlib auto refresh to automatically refresh tokens if possible
+
 0.2.4 (2016-11-10)
 ==================
 * Call a hook if it exists when tokens are refreshed
