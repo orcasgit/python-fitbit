@@ -827,6 +827,17 @@ class Fitbit(object):
         """
         url = "{0}/{1}/activities.json".format(*self._get_common_args())
         return self.make_request(url)
+ 
+    def get_activities(self, date):
+        """
+        https://wiki.fitbit.com/display/API/API-Get-Activities
+        """
+        url = "%s/%s/user/-/activities/date/%s.json" % (
+            self.API_ENDPOINT,
+            self.API_VERSION,
+            date,
+        )
+        return self.make_request(url)
 
     def activity_detail(self, activity_id):
         """
