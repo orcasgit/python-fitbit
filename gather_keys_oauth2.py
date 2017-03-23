@@ -24,7 +24,7 @@ class OAuth2Server:
         self.fitbit = Fitbit(
             client_id,
             client_secret,
-            redirect_uri=redirect_uri,
+            redirect_uri,
             timeout=10,
         )
 
