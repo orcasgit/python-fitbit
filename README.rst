@@ -19,4 +19,7 @@ Requirements
 
 To use the library, you need to install the run time requirements:
 
+LINUX
    sudo pip install -r requirements/base.txt
+WINDOWS
+   pip install -r requirements/base.txt
