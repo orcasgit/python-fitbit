@@ -20,11 +20,3 @@ Requirements
 To use the library, you need to install the run time requirements:
 
    sudo pip install -r requirements/base.txt
-
-To modify and test the library, you need to install the developer requirements:
-
-   sudo pip install -r requirements/dev.txt
-
-To run the library on a continuous integration server, you need to install the test requirements:
-
-   sudo pip install -r requirements/test.txt
