@@ -10,6 +10,9 @@ python-fitbit
 .. image:: https://requires.io/github/orcasgit/python-fitbit/requirements.png?branch=master
    :target: https://requires.io/github/orcasgit/python-fitbit/requirements/?branch=master
    :alt: Requirements Status
+.. image:: https://badges.gitter.im/orcasgit/python-fitbit.png
+   :target: https://gitter.im/orcasgit/python-fitbit
+   :alt: Gitter chat
 
 Fitbit API Python Client Implementation
 
