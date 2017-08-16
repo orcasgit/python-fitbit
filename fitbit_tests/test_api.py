@@ -417,6 +417,13 @@ class ResourceAccessTest(TestBase):
         self.common_api_test('sleep', (today,), {}, ("%s/-/sleep/date/%s.json" % (URLBASE, today), None), {})
         self.common_api_test('sleep', (today, "USER_ID"), {}, ("%s/USER_ID/sleep/date/%s.json" % (URLBASE, today), None), {})
 
+    def test_sleep_range(self):
+        today = datetime.date.today()
+        today_s = today.strftime('%Y-%m-%d')
+        yesterday = (datetime.date.today()-datetime.timedelta(hours=24))
+        yesterday_s = yesterday.strftime('%Y-%m-%d')
+        self.common_api_test('get_sleep_range', (yesterday, today), {}, ("%s/-/sleep/date/%s/%s.json" % (URLBASE, yesterday_s, today_s),), {})
+
     def test_foods(self):
         today = datetime.date.today().strftime('%Y-%m-%d')
         self.common_api_test('recent_foods', ("USER_ID",), {}, (URLBASE+"/USER_ID/foods/log/recent.json",), {})

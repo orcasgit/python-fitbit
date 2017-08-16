@@ -800,11 +800,27 @@ class Fitbit(object):
         https://dev.fitbit.com/docs/sleep/#get-sleep-logs
         date should be a datetime.date object.
         """
-        url = "{0}/{1}/user/-/sleep/date/{year}-{month}-{day}.json".format(
+        url = "{0}/{1}/user/-/sleep/date/{year:04d}-{month:02d}-{day:02d}.json".format(
             *self._get_common_args(),
             year=date.year,
             month=date.month,
             day=date.day
+        )
+        return self.make_request(url)
+
+    def get_sleep_range(self, date1, date2):
+        """
+        https://dev.fitbit.com/docs/sleep/#get-sleep-logs-by-date-range
+        date1 and date2 should be datetime.date objects.
+        """
+        url = "{0}/{1}/user/-/sleep/date/{year1:04d}-{month1:02d}-{day1:02d}/{year2:04d}-{month2:02d}-{day2:02d}.json".format(
+            *self._get_common_args(),
+            year1=date1.year,
+            month1=date1.month,
+            day1=date1.day,
+            year2=date2.year,
+            month2=date2.month,
+            day2=date2.day
         )
         return self.make_request(url)
 
