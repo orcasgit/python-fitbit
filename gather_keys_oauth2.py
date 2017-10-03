@@ -34,6 +34,9 @@ class OAuth2Server:
         server to accept the response
         """
         url, _ = self.fitbit.client.authorize_token_url()
+        print('If the authorization page was not loaded automatically, '
+              'enter the following url into the address bar: '
+              '\n {}'.format(url))
         # Open the web browser in a new thread for command-line browser support
         threading.Timer(1, webbrowser.open, args=(url,)).start()
         cherrypy.quickstart(self)
