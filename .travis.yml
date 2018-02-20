@@ -1,5 +1,5 @@
 language: python
-python: 3.5
+python: 3.6
 env:
   # Avoid testing pypy on travis until the following issue is fixed:
   #   https://github.com/travis-ci/travis-ci/issues/4756
