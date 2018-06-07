@@ -197,7 +197,6 @@ class Fitbit(object):
         'foods/log',
         'foods/log/water',
         'sleep',
-        'heart',
         'bp',
         'glucose',
     ]
@@ -327,7 +326,6 @@ class Fitbit(object):
             foods_log(date=None, user_id=None, data=None)
             foods_log_water(date=None, user_id=None, data=None)
             sleep(date=None, user_id=None, data=None)
-            heart(date=None, user_id=None, data=None)
             bp(date=None, user_id=None, data=None)
 
         * https://dev.fitbit.com/docs/
@@ -807,6 +805,38 @@ class Fitbit(object):
             day=date.day
         )
         return self.make_request(url)
+
+    def heart(self, date=None, base_date=None, end_date=None, period=None, user_id=None):
+        """
+        Retrieving heartrate data.
+
+        Arguments:
+            [date] defaults to today
+            [period]: '1d', '7d', '30d', '1w', '1m' defaults to '1d'
+            [base_date]: range start date 'yyyy-MM-dd' or 'today'
+            [end_date]: end date of range
+            [user_id] defaults to current logged in user
+
+        This implements the following method:
+        heart(date=None, base_date=None, end_date=None, period=None, user_id=None)
+        * https://dev.fitbit.com/docs/
+        """
+        if not date:
+            date = datetime.date.today()
+        date_string = self._get_date_string(date)
+
+        if not period:
+            period = '1d'
+
+        kwargs = {'date': date_string, 'period': period, 'basedate': base_date, 'enddate': end_date }
+
+        if base_date:
+            base_url = "{0}/{1}/user/{2}/activities/heart/date/{basedate}/{enddate}.json"
+        else:
+            base_url = "{0}/{1}/user/{2}/activities/heart/date/{date}/{period}.json"
+
+        url = base_url.format(*self._get_common_args(user_id), **kwargs)
+        return self.make_request(url, None)
 
     def log_sleep(self, start_time, duration):
         """
