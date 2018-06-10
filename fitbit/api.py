@@ -211,6 +211,11 @@ class Fitbit(object):
     def __init__(self, client_id, client_secret, access_token=None,
             refresh_token=None, expires_at=None, refresh_cb=None,
             redirect_uri=None, system=US, **kwargs):
+        #Tracking Fitbit Rate Limit
+        self.FitbitRateLimitReset = None
+        self.FitbitRateLimitRemaining = None
+        self.FitbitRateLimitLimit = None
+
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
@@ -265,6 +270,12 @@ class Fitbit(object):
             rep = json.loads(response.content.decode('utf8'))
         except ValueError:
             raise exceptions.BadResponse
+
+
+        #Track FitBit Rate Limits
+        self.FitbitRateLimitLimit = response.headers['Fitbit-Rate-Limit-Limit']
+        self.FitbitRateLimitRemaining = response.headers['Fitbit-Rate-Limit-Remaining']
+        self.FitbitRateLimitReset = response.headers['Fitbit-Rate-Limit-Reset']
 
         return rep
 
