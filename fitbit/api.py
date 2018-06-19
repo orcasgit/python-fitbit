@@ -257,6 +257,12 @@ class Fitbit(object):
         kwargs['headers'] = headers
 
         method = kwargs.get('method', 'POST' if 'data' in kwargs else 'GET')
+
+        if (self.rate_limit_remaining is not None and
+                self.rate_limit_remaining == 0 and
+                time.time() < self.rate_limit_reset):
+            raise exceptions.RateLimited(self.rate_limit_limit, self.rate_limit_remaining, self.rate_limit_reset)
+
         response = self.client.make_request(*args, **kwargs)
 
         if 'fitbit-rate-limit-remaining' in response.headers:

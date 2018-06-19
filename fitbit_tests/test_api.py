@@ -156,6 +156,39 @@ class RateLimitTest(TestBase):
         self.assertEqual(149, self.fb.rate_limit_remaining)
         self.assertAlmostEqual(time.time() + 1801, self.fb.rate_limit_reset, places=0)
 
+    def test_refuses_requests_that_will_be_throttled(self):
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b"1"
+        mock_response.headers = {}
+
+        self.fb.rate_limit_limit = 150
+        self.fb.rate_limit_reset = time.time() + 100
+        self.fb.rate_limit_remaining = 1
+
+        # Happy path where we shouldn't be rejected
+        with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
+            client_make_request.return_value = mock_response
+            self.fb.make_request('x')
+
+        # Failure case where we expect a rejection
+        self.fb.rate_limit_remaining = 0
+        try:
+            self.fb.make_request('x')
+            self.fail("Expected fitbit.exceptions.RateLimited to be thrown")
+        except RateLimited as rl:
+            self.assertEqual(150, rl.rate_limit_limit)
+            self.assertEqual(0, rl.rate_limit_remaining)
+            self.assertAlmostEqual(time.time() + 100, rl.rate_limit_reset, places=0)
+
+        # Happy path where remaining is zero, but reset is in the past
+        self.fb.rate_limit_reset = time.time() - 100
+        self.fb.rate_limit_remaining = 1
+
+        with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
+            client_make_request.return_value = mock_response
+            self.fb.make_request('x')
+
 
 class CollectionResourceTest(TestBase):
     """ Tests for _COLLECTION_RESOURCE """
