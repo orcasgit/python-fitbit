@@ -1,4 +1,5 @@
 import json
+import time
 
 
 class BadResponse(Exception):
@@ -20,6 +21,20 @@ class Timeout(Exception):
     Used when a timeout occurs.
     """
     pass
+
+
+class RateLimited(Exception):
+    """
+    Used when the Fitbit API rate limit has been exceeded and a request would cause an HTTP 429 error.
+    """
+
+    def __init__(self, rate_limit_limit, rate_limit_remaining, rate_limit_reset):
+        self.rate_limit_limit = rate_limit_limit
+        self.rate_limit_remaining = rate_limit_remaining
+        self.rate_limit_reset = rate_limit_reset
+        super(RateLimited, self).__init__(
+            "Rate limit of {} requests exhausted. Reset in {:0f} seconds".format(rate_limit_limit,
+                                                                                 rate_limit_reset - time.time()))
 
 
 class HTTPException(Exception):

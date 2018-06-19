@@ -1,9 +1,10 @@
+import time
 from unittest import TestCase
 import datetime
 import mock
 import requests
 from fitbit import Fitbit
-from fitbit.exceptions import DeleteError, Timeout
+from fitbit.exceptions import DeleteError, Timeout, RateLimited
 
 URLBASE = "%s/%s/user" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
 
@@ -82,6 +83,7 @@ class APITest(TestBase):
         mock_response = mock.Mock()
         mock_response.status_code = 200
         mock_response.content = b"1"
+        mock_response.headers = {}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -97,6 +99,7 @@ class APITest(TestBase):
         mock_response = mock.Mock()
         mock_response.status_code = 202
         mock_response.content = "1"
+        mock_response.headers = {}
         ARGS = (1, 2)
         KWARGS = {'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
@@ -110,6 +113,7 @@ class APITest(TestBase):
         mock_response = mock.Mock()
         mock_response.status_code = 204
         mock_response.content = "1"
+        mock_response.headers = {}
         ARGS = (1, 2)
         KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
@@ -123,11 +127,34 @@ class APITest(TestBase):
         mock_response = mock.Mock()
         mock_response.status_code = 205
         mock_response.content = "1"
+        mock_response.headers = {}
         ARGS = (1, 2)
         KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             self.assertRaises(DeleteError, self.fb.make_request, *ARGS, **KWARGS)
+
+
+class RateLimitTest(TestBase):
+    """
+    Test how make_request interacts with Fitbit API's rate-limiting headers
+    """
+
+    def test_updates_parameters_from_request(self):
+        mock_response = mock.Mock()
+        mock_response.status_code = 200
+        mock_response.content = b"1"
+        mock_response.headers = {
+            'fitbit-rate-limit-limit': '150',
+            'fitbit-rate-limit-remaining': '149',
+            'fitbit-rate-limit-reset': '1801',
+        }
+        with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
+            client_make_request.return_value = mock_response
+            self.fb.make_request('x')
+        self.assertEqual(150, self.fb.rate_limit_limit)
+        self.assertEqual(149, self.fb.rate_limit_remaining)
+        self.assertAlmostEqual(time.time() + 1801, self.fb.rate_limit_reset, places=0)
 
 
 class CollectionResourceTest(TestBase):

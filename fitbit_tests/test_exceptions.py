@@ -27,6 +27,7 @@ class ExceptionTest(unittest.TestCase):
         r = mock.Mock(spec=requests.Response)
         r.status_code = 200
         r.content = b'{"normal": "resource"}'
+        r.headers = {}
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -73,6 +74,7 @@ class ExceptionTest(unittest.TestCase):
         """
         r = mock.Mock(spec=requests.Response)
         r.content = b'{"normal": "resource"}'
+        r.headers = {}
 
         self.client_kwargs['oauth2'] = True
         f = Fitbit(**self.client_kwargs)
@@ -116,6 +118,7 @@ class ExceptionTest(unittest.TestCase):
         r = mock.Mock(spec=requests.Response)
         r.status_code = 200
         r.content = b"iyam not jason"
+        r.headers = {}
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
@@ -128,6 +131,7 @@ class ExceptionTest(unittest.TestCase):
         r = mock.Mock(spec=requests.Response)
         r.status_code = 201
         r.content = b'{"it\'s all": "ok"}'
+        r.headers = {}
 
         f = Fitbit(**self.client_kwargs)
         f.client._request = lambda *args, **kwargs: r
