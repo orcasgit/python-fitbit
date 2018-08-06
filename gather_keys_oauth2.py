@@ -64,14 +64,7 @@ class OAuth2Server:
         """
         error = None
         if code:
-            try:
-                self.fitbit.client.fetch_access_token(code)
-            except MissingTokenError:
-                error = self._fmt_failure(
-                    'Missing access token parameter.</br>Please check that '
-                    'you are using the correct client_secret')
-            except MismatchingStateError:
-                error = self._fmt_failure('CSRF Warning! Mismatching state')
+            self.authenticate_code(code=code)
         else:
             error = self._fmt_failure('Unknown error while authenticating')
         # Use a thread to shutdown cherrypy so we can return HTML first
