@@ -618,6 +618,18 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
+    def get_activity(self, date, user_id=None):
+        """
+        This gets the activities for a given day for the current user
+        Date should be 'YYYY-MM-DD'
+        https://dev.fitbit.com/build/reference/web-api/activity/#get-daily-activity-summary
+        """
+        user_id= self._get_common_args(user_id)
+        url = "{0}/{1}/user/-/activities/date/{date}.json".format(
+            *self._get_common_args(user_id),
+            date=date)
+        return self.make_request(url)
+
     def _food_stats(self, user_id=None, qualifier=''):
         """
         This builds the convenience methods on initialization::
