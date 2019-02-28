@@ -143,6 +143,7 @@ class FitbitOauth2Client(object):
             self.access_token_url,
             username=self.client_id,
             password=self.client_secret,
+            client_secret=self.client_secret,
             code=code)
 
     def refresh_token(self):
