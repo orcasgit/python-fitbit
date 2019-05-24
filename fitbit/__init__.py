@@ -3,7 +3,7 @@
 Fitbit API Library
 ------------------
 
-:copyright: 2012-2017 ORCAS.
+:copyright: 2012-2019 ORCAS.
 :license: BSD, see LICENSE for more details.
 """
 
@@ -17,8 +17,8 @@ __author_email__ = 'bpitcher@orcasinc.com'
 __copyright__ = 'Copyright 2012-2017 ORCAS'
 __license__ = 'Apache 2.0'
 
-__version__ = '0.3.0'
-__release__ = '0.3.0'
+__version__ = '0.3.1'
+__release__ = '0.3.1'
 
 # Module namespace.
 

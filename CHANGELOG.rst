@@ -1,3 +1,7 @@
+0.3.1 (2019-05-24)
+==================
+* Fix auth with newer versions of OAuth libraries while retaining backward compatibility
+
 0.3.0 (2017-01-24)
 ==================
 * Surface errors better
