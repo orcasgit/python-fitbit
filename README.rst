@@ -1,6 +1,8 @@
 python-fitbit
 =============
 
+.. image:: https://badge.fury.io/py/fitbit.svg
+    :target: https://badge.fury.io/py/fitbit
 .. image:: https://travis-ci.org/orcasgit/python-fitbit.svg?branch=master
    :target: https://travis-ci.org/orcasgit/python-fitbit
    :alt: Build Status
