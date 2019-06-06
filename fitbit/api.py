@@ -618,6 +618,45 @@ class Fitbit(object):
             qualifier=qualifier
         )
         return self.make_request(url)
+    
+    def activity_logs_list(self, user_id=None, before_date = None, after_date = None, limit = 20, offset = 0):
+        """
+        * https://dev.fitbit.com/build/reference/web-api/activity/#get-activity-logs-list
+        
+        Activity logs list retrieves a list of a user's activity log entries before or after 
+        a given day with offset and limit. Use before_date OR after_date to retrieve the 
+        activities.
+        
+        To paginate, request the next and previous links in the pagination response object. 
+        Do not manually specify the offset parameter, as it will be removed in the future 
+        and your app will break.
+        
+        Arguments:
+        * ``before_date`` -- The date in the format yyyy-MM-ddTHH:mm:ss
+        * ``after_date`` -- The date in the format yyyy-MM-ddTHH:mm:ss
+        * ``limit`` -- The max of the number of entries returned (maximum: 20)
+        * ``offset`` -- This should always be set to 0. Required for now. 
+        """
+        if before_date:
+            sort = 'desc'  # sort parameter is automatically inferred
+            base_url = "{0}/{1}/user/-/activities/list.json?beforeDate={before_date}".format(
+                *self._get_common_args(user_id),
+                before_date = before_date
+            )
+        elif after_date:
+            sort = 'asc'
+            base_url = "{0}/{1}/user/-/activities/list.json?afterDate={after_date}".format(
+                *self._get_common_args(user_id),
+                after_date = after_date
+            )
+            
+        url_params = "&sort={sort}&limit={limit}&offset={offset}".format(
+            sort = sort,
+            limit = limit,
+            offset = offset
+        )
+        
+        return self.make_request(base_url+url_params)
 
     def _food_stats(self, user_id=None, qualifier=''):
         """
