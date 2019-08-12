@@ -6,6 +6,7 @@ import threading
 import traceback
 import webbrowser
 
+from urllib.parse import urlparse
 from base64 import b64encode
 from fitbit.api import Fitbit
 from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
@@ -28,6 +29,8 @@ class OAuth2Server:
             timeout=10,
         )
 
+        self.redirect_uri = redirect_uri
+
     def browser_authorize(self):
         """
         Open a browser to the authorization url and spool up a CherryPy
@@ -36,6 +39,12 @@ class OAuth2Server:
         url, _ = self.fitbit.client.authorize_token_url()
         # Open the web browser in a new thread for command-line browser support
         threading.Timer(1, webbrowser.open, args=(url,)).start()
+
+        # Same with redirect_uri hostname and port.
+        urlparams = urlparse(self.redirect_uri)
+        cherrypy.config.update({'server.socket_host': urlparams.hostname,
+                                'server.socket_port': urlparams.port})
+
         cherrypy.quickstart(self)
 
     @cherrypy.expose
