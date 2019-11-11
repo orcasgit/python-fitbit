@@ -2,6 +2,7 @@
 import datetime
 import json
 import requests
+import xml.etree.ElementTree as ET
 
 try:
     from urllib.parse import urlencode
@@ -618,6 +619,71 @@ class Fitbit(object):
             qualifier=qualifier
         )
         return self.make_request(url)
+
+    def activity_logs_list(self, user_id=None, before_date=None,
+                           after_date=None, limit=20):
+        """
+        * https://dev.fitbit.com/docs/activity/#get-activity-logs-list
+
+        Parameters
+        ----------
+        before_date : str
+            The date in the format yyyy-MM-ddTHH:mm:ss. 
+            Only yyyy-MM-dd is required. 
+            Either before_date or after_date must be specified.
+        after_date : str
+            The date in the format yyyy-MM-ddTHH:mm:ss.
+            Only yyyy-MM-dd is required.
+            Either before_date or after_date must be specified.
+        limit : number
+            The max of the number of entries returned (maximum: 20).
+            
+        Return
+        ------
+        json : JSON
+            JSON object representing the list.
+        """
+        if not((isinstance(before_date, str) and after_date is None) or \
+                (isinstance(after_date, str) and before_date is None)):
+            raise ValueError('either before_date or after_date is required')
+        if isinstance(before_date, str):
+            sort = 'desc'
+        else:
+            sort = 'asc'
+        url = "{0}/{1}/user/{2}/activities/list.json".format(
+            *self._get_common_args(user_id)
+        )
+        params = {
+            'beforeDate' : before_date,
+            'afterDate' : after_date,
+            'sort' : sort,
+            'limit' : limit,
+            'offset' : 0
+        }
+        return self.make_request(url, params=params)
+
+    def activity_tcx(self, user_id=None, log_id=''):
+        """
+        * https://dev.fitbit.com/docs/activity/#get-activity-tcx
+        
+        Return
+        ------
+        tcx : xml.etree.ElementTree.Element
+            root element of TCX data 
+        
+        Exception
+        ---------
+        BadResponse
+            when HTTP response status is error
+        """
+        url = "{0}/{1}/user/{2}/activities/{log_id}.tcx".format(
+            *self._get_common_args(user_id),
+            log_id=log_id
+        )
+        response = self.client.make_request(url)
+        if response.status_code != 200:
+            raise BadResponse
+        return ET.fromstring(response.content)
 
     def _food_stats(self, user_id=None, qualifier=''):
         """
