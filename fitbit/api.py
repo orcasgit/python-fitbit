@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
+import time
+
 import requests
 
 try:
@@ -244,6 +246,9 @@ class Fitbit(object):
             setattr(self, '%s_activities' % qualifier, curry(self.activity_stats, qualifier=qualifier))
             setattr(self, '%s_foods' % qualifier, curry(self._food_stats,
                                                         qualifier=qualifier))
+        self.rate_limit_remaining = None
+        self.rate_limit_reset = None
+        self.rate_limit_limit = None
 
     def make_request(self, *args, **kwargs):
         # This should handle data level errors, improper requests, and bad
@@ -253,7 +258,21 @@ class Fitbit(object):
         kwargs['headers'] = headers
 
         method = kwargs.get('method', 'POST' if 'data' in kwargs else 'GET')
+
+        if (self.rate_limit_remaining is not None and
+                self.rate_limit_remaining == 0 and
+                time.time() < self.rate_limit_reset):
+            raise exceptions.RateLimited(self.rate_limit_limit, self.rate_limit_remaining, self.rate_limit_reset)
+
         response = self.client.make_request(*args, **kwargs)
+
+        if 'fitbit-rate-limit-remaining' in response.headers:
+            self.rate_limit_remaining = int(response.headers.get('fitbit-rate-limit-remaining'))
+        if 'fitbit-rate-limit-limit' in response.headers:
+            self.rate_limit_limit = int(response.headers.get('fitbit-rate-limit-limit'))
+        rate_limit_reset = response.headers.get('fitbit-rate-limit-reset')
+        if rate_limit_reset:
+            self.rate_limit_reset = time.time() + int(rate_limit_reset)
 
         if response.status_code == 202:
             return True
