@@ -1,3 +1,34 @@
+0.3.1 (2019-05-24)
+==================
+* Fix auth with newer versions of OAuth libraries while retaining backward compatibility
+
+0.3.0 (2017-01-24)
+==================
+* Surface errors better
+* Use requests-oauthlib auto refresh to automatically refresh tokens if possible
+
+0.2.4 (2016-11-10)
+==================
+* Call a hook if it exists when tokens are refreshed
+
+0.2.3 (2016-07-06)
+==================
+* Refresh token when it expires
+
+0.2.2 (2016-03-30)
+==================
+* Refresh token bugfixes
+
+0.2.1 (2016-03-28)
+==================
+* Update requirements to use requests-oauthlib>=0.6.1
+
+0.2 (2016-03-23)
+================
+
+* Drop OAuth1 support. See `OAuth1 deprecated <https://dev.fitbit.com/docs/oauth2/#oauth-1-0a-deprecated>`_
+* Drop py26 and py32 support
+
 0.1.3 (2015-02-04)
 ==================
 

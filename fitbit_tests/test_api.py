@@ -1,8 +1,9 @@
 from unittest import TestCase
 import datetime
 import mock
+import requests
 from fitbit import Fitbit
-from fitbit.exceptions import DeleteError
+from fitbit.exceptions import DeleteError, Timeout
 
 URLBASE = "%s/%s/user" % (Fitbit.API_ENDPOINT, Fitbit.API_VERSION)
 
@@ -24,6 +25,49 @@ class TestBase(TestCase):
         self.assertRaises(exc, getattr(self.fb, funcname), *args, **kwargs)
 
 
+class TimeoutTest(TestCase):
+
+    def setUp(self):
+        self.fb = Fitbit('x', 'y')
+        self.fb_timeout = Fitbit('x', 'y', timeout=10)
+
+        self.test_url = 'invalid://do.not.connect'
+
+    def test_fb_without_timeout(self):
+        with mock.patch.object(self.fb.client.session, 'request') as request:
+            mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = b'{}'
+            request.return_value = mock_response
+            result = self.fb.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertNotIn('timeout', request.call_args[1])
+        self.assertEqual({}, result)
+
+    def test_fb_with_timeout__timing_out(self):
+        with mock.patch.object(self.fb_timeout.client.session, 'request') as request:
+            request.side_effect = requests.Timeout('Timed out')
+            with self.assertRaisesRegexp(Timeout, 'Timed out'):
+                self.fb_timeout.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertEqual(10, request.call_args[1]['timeout'])
+
+    def test_fb_with_timeout__not_timing_out(self):
+        with mock.patch.object(self.fb_timeout.client.session, 'request') as request:
+            mock_response = mock.Mock()
+            mock_response.status_code = 200
+            mock_response.content = b'{}'
+            request.return_value = mock_response
+
+            result = self.fb_timeout.make_request(self.test_url)
+
+        request.assert_called_once()
+        self.assertEqual(10, request.call_args[1]['timeout'])
+        self.assertEqual({}, result)
+
+
 class APITest(TestBase):
     """
     Tests for python-fitbit API, not directly involved in getting
@@ -34,7 +78,7 @@ class APITest(TestBase):
         # If make_request returns a response with status 200,
         # we get back the json decoded value that was in the response.content
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.system}}
+        KWARGS = {'a': 3, 'b': 4, 'headers': {'Accept-Language': self.fb.system}}
         mock_response = mock.Mock()
         mock_response.status_code = 200
         mock_response.content = b"1"
@@ -54,7 +98,7 @@ class APITest(TestBase):
         mock_response.status_code = 202
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -67,7 +111,7 @@ class APITest(TestBase):
         mock_response.status_code = 204
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             retval = self.fb.make_request(*ARGS, **KWARGS)
@@ -80,7 +124,7 @@ class APITest(TestBase):
         mock_response.status_code = 205
         mock_response.content = "1"
         ARGS = (1, 2)
-        KWARGS = { 'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
+        KWARGS = {'a': 3, 'b': 4, 'method': 'DELETE', 'Accept-Language': self.fb.system}
         with mock.patch.object(self.fb.client, 'make_request') as client_make_request:
             client_make_request.return_value = mock_response
             self.assertRaises(DeleteError, self.fb.make_request, *ARGS, **KWARGS)
@@ -93,7 +137,7 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = datetime.date(1962, 1, 13)
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date.strftime("%Y-%m-%d")
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
@@ -104,17 +148,17 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = "1962-1-13"
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
-        self.common_api_test('_COLLECTION_RESOURCE',(resource, date, user_id, data), {}, (url, expected_data), {} )
+        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url, expected_data), {})
 
     def test_no_date(self):
         # If we omit the date, it uses today
         resource = "RESOURCE"
         user_id = "bilbo"
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = datetime.date.today().strftime("%Y-%m-%d")  # expect today
         url = URLBASE + "/%s/%s.json" % (user_id, resource)
@@ -125,12 +169,17 @@ class CollectionResourceTest(TestBase):
         resource = "RESOURCE"
         date = datetime.date(1962, 1, 13)
         user_id = None
-        data = { 'a': 1, 'b': 2}
+        data = {'a': 1, 'b': 2}
         expected_data = data.copy()
         expected_data['date'] = date.strftime("%Y-%m-%d")
         expected_user_id = "-"
         url = URLBASE + "/%s/%s.json" % (expected_user_id, resource)
-        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url,expected_data), {})
+        self.common_api_test(
+            '_COLLECTION_RESOURCE',
+            (resource, date, user_id, data), {},
+            (url, expected_data),
+            {}
+        )
 
     def test_no_data(self):
         # If we omit the data arg, it does the right thing
@@ -139,7 +188,7 @@ class CollectionResourceTest(TestBase):
         user_id = "bilbo"
         data = None
         url = URLBASE + "/%s/%s/date/%s.json" % (user_id, resource, date)
-        self.common_api_test('_COLLECTION_RESOURCE', (resource,date,user_id,data), {}, (url,data), {})
+        self.common_api_test('_COLLECTION_RESOURCE', (resource, date, user_id, data), {}, (url, data), {})
 
     def test_body(self):
         # Test the first method defined in __init__ to see if it calls
@@ -164,14 +213,18 @@ class DeleteCollectionResourceTest(TestBase):
         # _DELETE_COLLECTION_RESOURCE calls make_request with the right args
         resource = "RESOURCE"
         log_id = "Foo"
-        url = URLBASE + "/-/%s/%s.json" % (resource,log_id)
-        self.common_api_test('_DELETE_COLLECTION_RESOURCE', (resource, log_id), {},
-            (url,), {"method": "DELETE"})
+        url = URLBASE + "/-/%s/%s.json" % (resource, log_id)
+        self.common_api_test(
+            '_DELETE_COLLECTION_RESOURCE',
+            (resource, log_id), {},
+            (url,),
+            {"method": "DELETE"}
+        )
 
     def test_cant_delete_body(self):
         self.assertFalse(hasattr(self.fb, 'delete_body'))
 
-    def test_delete_water(self):
+    def test_delete_foods_log(self):
         log_id = "fake_log_id"
         # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
         # since the __init__ is going to set up references to it
@@ -184,7 +237,7 @@ class DeleteCollectionResourceTest(TestBase):
         self.assertEqual({'log_id': log_id}, kwargs)
         self.assertEqual(999, retval)
 
-    def test_delete_water(self):
+    def test_delete_foods_log_water(self):
         log_id = "OmarKhayyam"
         # We need to mock _DELETE_COLLECTION_RESOURCE before we create the Fitbit object,
         # since the __init__ is going to set up references to it
@@ -201,12 +254,12 @@ class DeleteCollectionResourceTest(TestBase):
 class ResourceAccessTest(TestBase):
     """
     Class for testing the Fitbit Resource Access API:
-    https://wiki.fitbit.com/display/API/Fitbit+Resource+Access+API
+    https://dev.fitbit.com/docs/
     """
     def test_user_profile_get(self):
         """
         Test getting a user profile.
-        https://wiki.fitbit.com/display/API/API-Get-User-Info
+        https://dev.fitbit.com/docs/user/
 
         Tests the following HTTP method/URLs:
         GET https://api.fitbit.com/1/user/FOO/profile.json
@@ -221,7 +274,7 @@ class ResourceAccessTest(TestBase):
     def test_user_profile_update(self):
         """
         Test updating a user profile.
-        https://wiki.fitbit.com/display/API/API-Update-User-Info
+        https://dev.fitbit.com/docs/user/#update-profile
 
         Tests the following HTTP method/URLs:
         POST https://api.fitbit.com/1/user/-/profile.json
@@ -432,7 +485,7 @@ class ResourceAccessTest(TestBase):
     def test_bodyweight(self):
         """
         Tests for retrieving body weight measurements.
-        https://wiki.fitbit.com/display/API/API-Get-Body-Weight
+        https://dev.fitbit.com/docs/body/#get-weight-logs
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/body/log/weight/date/1992-05-12.json
         GET https://api.fitbit.com/1/user/BAR/body/log/weight/date/1992-05-12/1998-12-31.json
@@ -474,7 +527,7 @@ class ResourceAccessTest(TestBase):
     def test_bodyfat(self):
         """
         Tests for retrieving bodyfat measurements.
-        https://wiki.fitbit.com/display/API/API-Get-Body-Fat
+        https://dev.fitbit.com/docs/body/#get-body-fat-logs
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/body/log/fat/date/1992-05-12.json
         GET https://api.fitbit.com/1/user/BAR/body/log/fat/date/1992-05-12/1998-12-31.json
@@ -599,7 +652,7 @@ class ResourceAccessTest(TestBase):
 class SubscriptionsTest(TestBase):
     """
     Class for testing the Fitbit Subscriptions API:
-    https://wiki.fitbit.com/display/API/Fitbit+Subscriptions+API
+    https://dev.fitbit.com/docs/subscriptions/
     """
 
     def test_subscriptions(self):
@@ -628,7 +681,7 @@ class SubscriptionsTest(TestBase):
 class PartnerAPITest(TestBase):
     """
     Class for testing the Fitbit Partner API:
-    https://wiki.fitbit.com/display/API/Fitbit+Partner+API
+    https://dev.fitbit.com/docs/
     """
 
     def _test_intraday_timeseries(self, resource, base_date, detail_level,
@@ -643,7 +696,7 @@ class PartnerAPITest(TestBase):
     def test_intraday_timeseries(self):
         """
         Intraday Time Series tests:
-        https://wiki.fitbit.com/display/API/API-Get-Intraday-Time-Series
+        https://dev.fitbit.com/docs/activity/#get-activity-intraday-time-series
 
         Tests the following methods/URLs:
         GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
@@ -713,12 +766,12 @@ class PartnerAPITest(TestBase):
         # start_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(3,56), end_time='15:07',
+            start_time=datetime.time(3, 56), end_time='15:07',
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
         # end_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time='3:56', end_time=datetime.time(15,7),
+            start_time='3:56', end_time=datetime.time(15, 7),
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
         # start_time can be a midnight datetime object
         self._test_intraday_timeseries(

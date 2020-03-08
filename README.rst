@@ -1,6 +1,8 @@
 python-fitbit
 =============
 
+.. image:: https://badge.fury.io/py/fitbit.svg
+    :target: https://badge.fury.io/py/fitbit
 .. image:: https://travis-ci.org/orcasgit/python-fitbit.svg?branch=master
    :target: https://travis-ci.org/orcasgit/python-fitbit
    :alt: Build Status
@@ -10,6 +12,9 @@ python-fitbit
 .. image:: https://requires.io/github/orcasgit/python-fitbit/requirements.png?branch=master
    :target: https://requires.io/github/orcasgit/python-fitbit/requirements/?branch=master
    :alt: Requirements Status
+.. image:: https://badges.gitter.im/orcasgit/python-fitbit.png
+   :target: https://gitter.im/orcasgit/python-fitbit
+   :alt: Gitter chat
 
 Fitbit API Python Client Implementation
 
@@ -18,7 +23,7 @@ For documentation: `http://python-fitbit.readthedocs.org/ <http://python-fitbit.
 Requirements
 ============
 
-* Python 2.6+
+* Python 2.7+
 * `python-dateutil`_ (always)
 * `requests-oauthlib`_ (always)
 * `Sphinx`_ (to create the documention)

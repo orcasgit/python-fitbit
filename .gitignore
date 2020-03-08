@@ -6,9 +6,11 @@
 docs/_build
 *.egg-info
 *.egg
+.eggs
 dist
 build
 env
+htmlcov
 
 # Editors
 .idea

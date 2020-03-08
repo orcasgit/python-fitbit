@@ -5,8 +5,8 @@ import re
 
 from setuptools import setup
 
-required = [line for line in open('requirements/base.txt').read().split("\n")]
-required_test = [line for line in open('requirements/test.txt').read().split("\n") if not line.startswith("-r")]
+required = [line for line in open('requirements/base.txt').read().split("\n") if line != '']
+required_test = [line for line in open('requirements/test.txt').read().split("\n") if not line.startswith("-r") and line != '']
 
 fbinit = open('fitbit/__init__.py').read()
 author = re.search("__author__ = '([^']+)'", fbinit).group(1)
@@ -33,13 +33,11 @@ setup(
         'Natural Language :: English',
         'License :: OSI Approved :: Apache Software License',
         'Programming Language :: Python',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: PyPy'
     ),
 )
