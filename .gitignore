@@ -11,6 +11,14 @@ dist
 build
 env
 htmlcov
+*.ini
+
+# venv
+python-fitbit
+
+# data
+fitbit-dumps
 
 # Editors
 .idea
+.vscode

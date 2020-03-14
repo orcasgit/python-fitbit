@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import fitbit
-import ConfigParser
+import configparser
 import datetime
 import os
 import time
@@ -44,12 +44,8 @@ def previously_dumped(date):
 
 
 def dump_day(c, date):
-    steps_data = c.intraday_time_series('activities/steps', base_date=date, detail_level='1min', start_time=None, end_time=None)
-    steps = steps_data['activities-steps-intraday']['dataset']
-    # Assume that if no steps were recorded then there is no more data
-    if sum(s['value'] for s in steps) == 0:
-        return False
-
+    steps_data = c.intraday_time_series('activities/steps', base_date=date, detail_level='1min')
+    steps = steps_data['activities-steps']
     dump_to_json_file("steps", date, steps_data)
 
     cals_data = c.intraday_time_series('activities/calories', base_date=date, detail_level='1min', start_time=None, end_time=None)
@@ -61,20 +57,50 @@ def dump_day(c, date):
     floor_data = c.intraday_time_series('activities/floors', base_date=date, detail_level='1min', start_time=None, end_time=None)
     dump_to_json_file("floors", date, floor_data)
 
+    heart_data =c.intraday_time_series('activities/heart', base_date=date, detail_level='1min', start_time=None, end_time=None)
+    dump_to_json_file("heart", date, heart_data)
+
     sleep_data = c.get_sleep(date)
     dump_to_json_file("sleep", date, sleep_data)
+
+    weight_data = c.get_bodyweight(date)
+    dump_to_json_file("weight", date, weight_data)
+
+    foods_data = c.foods_log(date)
+    dump_to_json_file("foods", date, foods_data)
+
+    water_data = c.foods_log_water(date)
+    dump_to_json_file("water", date, water_data)
     return True
 
 
-parser = ConfigParser.SafeConfigParser()
+def update_tokens(token_dict):
+    logmsg('updating tokens')
+    global CI_access_token
+    global CI_refresh_token
+    global CI_expires_at
+    CI_access_token = token_dict['access_token']
+    CI_refresh_token = token_dict['refresh_token']
+    CI_expires_at = token_dict['expires_at']
+
+    logmsg('updating config file')
+    global config_parser
+    config_parser['Login Parameters']['ACCESS_TOKEN'] = CI_access_token
+    config_parser['Login Parameters']['REFRESH_TOKEN'] = CI_refresh_token
+    config_parser['Login Parameters']['EXPIRES_AT'] = str(CI_expires_at)
+    with open('fitbit.ini', 'w') as configfile:
+        config_parser.write(configfile)
+
+config_parser = configparser.ConfigParser()
 
 # assuming that we wrote the data from gather_keys_oauth2.py to this ini file...
-parser.read('fitbit.ini')
-CI_id = parser.get('Login Parameters', 'CLIENT_ID')
-CI_client_secret = parser.get('Login Parameters', 'CLIENT_SECRET')
-CI_access_token = parser.get('Login Parameters', 'ACCESS_TOKEN')
-CI_refresh_token = parser.get('Login Parameters', 'REFRESH_TOKEN')
-authd_client = fitbit.Fitbit(CI_id, CI_client_secret, oauth2=True, access_token=CI_access_token, refresh_token=CI_refresh_token)
+config_parser.read('fitbit.ini')
+CI_id = config_parser.get('Login Parameters', 'CLIENT_ID')
+CI_client_secret = config_parser.get('Login Parameters', 'CLIENT_SECRET')
+CI_access_token = config_parser.get('Login Parameters', 'ACCESS_TOKEN')
+CI_refresh_token = config_parser.get('Login Parameters', 'REFRESH_TOKEN')
+CI_expires_at = float(config_parser.get('Login Parameters', 'EXPIRES_AT'))
+authd_client = fitbit.Fitbit(CI_id, CI_client_secret, oauth2=True, access_token=CI_access_token, refresh_token=CI_refresh_token, expires_at=CI_expires_at, refresh_cb=update_tokens)
 
 date = datetime.date.today()
 
@@ -87,7 +113,10 @@ if __name__ == "__main__":
 
 pause_between_days = 60
 days_since_last_expiry = 0
+api_timeouts = 0
+api_server_errors = 0
 
+# to handle: fitbit.exceptions.HTTPServerError: <Response [504]>
 while not previously_dumped(date):
     logmsg('dumping: {}'.format(date))
     try:
@@ -99,23 +128,31 @@ while not previously_dumped(date):
         pause_between_days = int(pause_between_days + 1 + (e.retry_after_secs/days_since_last_expiry))
         days_since_last_expiry = 0
         logmsg('new pause between days %i seconds' % pause_between_days)
-        if (e.retry_after_secs > 1200):
-            # API Limit goes by the hour, so refresh the client after 10 minutes to
-            # make sure that it doesn't expire
-            time.sleep(600)
-            logmsg('refreshing client tokens')
-            authd_client.client.refresh_token()
-
-            # wait the rest of the time
-            time.sleep(e.retry_after_secs - 600)
-        else:
-            time.sleep(e.retry_after_secs + 10)
+        time.sleep(e.retry_after_secs + 10)
     except HTTPUnauthorized as e:
         logmsg('token has expired, exiting. start with new date: {}'.format(date))
         sys.exit(1)
+    except fitbit.exceptions.Timeout as t:
+        if api_timeouts > 5:
+            logmsg('too many timeouts in a row. exiting')
+            sys.exit(1)
+        logmsg('Timeout error: pausing and retrying in {} seconds'.format(pause_between_days))
+        api_timeouts += 1
+        time.sleep(pause_between_days)
+    except fitbit.exceptions.HTTPServerError as e:
+        print('server error!')
+        print(e.args)
+        if api_server_errors > 5:
+            logmsg('too many Server Errors in a row. exiting')
+            sys.exit(1)
+        logmsg('Server error: pausing and retrying in {} seconds'.format(pause_between_days))
+        api_server_errors += 1
+        time.sleep(pause_between_days)
     else:
         days_since_last_expiry += 1
         date -= datetime.timedelta(days=1)
+        api_timeouts = 0
+        api_server_errors = 0
         if not r:
             break
         # wait a minute just to not throttle the API since we can only do 150
