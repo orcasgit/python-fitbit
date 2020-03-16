@@ -116,7 +116,6 @@ days_since_last_expiry = 0
 api_timeouts = 0
 api_server_errors = 0
 
-# to handle: fitbit.exceptions.HTTPServerError: <Response [504]>
 while not previously_dumped(date):
     logmsg('dumping: {}'.format(date))
     try:
