@@ -269,6 +269,24 @@ class Fitbit(object):
 
         return rep
 
+    def log_food(self, foodId, mealTypeId, unitId, amount, date, user_id=None):
+        """
+        Log a food item.
+
+        https://dev.fitbit.com/build/reference/web-api/food-logging#logging-and-deleting-collection-data
+        """
+        url = "{0}/{1}/user/{2}/foods/log.json".format(*self._get_common_args(user_id))
+        
+        data={
+            'foodId': str(foodId),
+            'mealTypeId': str(mealTypeId),
+            'unitId': str(unitId),
+            'amount': str(amount),
+            'date': str(date)
+        }
+
+        return self.make_request(url,data=data)
+
     def user_profile_get(self, user_id=None):
         """
         Get a user profile. You can get other user's profile information
