@@ -185,7 +185,8 @@ class Fitbit(object):
     that is to reauthorize the user.
     """
     US = 'en_US'
-    METRIC = 'en_UK'
+    UK = 'en_GB'
+    METRIC = ' '
 
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
