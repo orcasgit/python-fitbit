@@ -188,7 +188,7 @@ class Fitbit(object):
     METRIC = 'en_UK'
 
     API_ENDPOINT = "https://api.fitbit.com"
-    API_VERSION = 1
+    API_VERSION = 1.2
     WEEK_DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
     PERIODS = ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']
 
