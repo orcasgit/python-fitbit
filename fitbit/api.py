@@ -474,6 +474,20 @@ class Fitbit(object):
         data = self._filter_nones({'distance': distance, 'floors': floors,
                                    'steps': steps})
         return self._resource_goal('activities', data, period='weekly')
+    
+    def activities_log_list(self, before_date, after_date, sort, limit, offset = 0, user_id=None):
+        """
+        Retrieves a list of a user's activity log entris before or ater a given
+        day.
+        
+        https://dev.fitbit.com/build/reference/web-api/activity/#get-activity-logs-list
+        
+        Arguments:
+        """
+        user_id= self._get_common_args(user_id)
+        url = "{0}/{1}/user/-/activities/list.json".format(
+            *self._get_common_args(user_id),)
+        return self.make_request(url)
 
     def food_goal(self, calories=None, intensity=None, personalized=None):
         """
