@@ -27,7 +27,7 @@ setup(
     install_requires=["setuptools"] + required,
     license='Apache 2.0',
     test_suite='fitbit_tests.all_tests',
-    tests_require=required_test,
+    tests_require=required,
     classifiers=(
         'Intended Audience :: Developers',
         'Natural Language :: English',
