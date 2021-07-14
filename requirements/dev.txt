@@ -1,5 +1,0 @@
--r base.txt
--r test.txt
-
-cherrypy>=3.7,<3.9
-tox>=1.8,<2.2

@@ -1,5 +1,0 @@
-coverage>=3.7,<4.0
-freezegun>=0.3.8
-mock>=1.0
-requests-mock>=1.2.0
-Sphinx>=1.2,<1.4
