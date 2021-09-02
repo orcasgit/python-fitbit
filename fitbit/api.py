@@ -374,14 +374,14 @@ class Fitbit(object):
         response = self.make_request(url, method='DELETE')
         return response
 
-    def _resource_goal(self, resource, data={}, period=None):
+    def _resource_goal(self, resource, data=None, period=None):
         """ Handles GETting and POSTing resource goals of all types """
         url = "{0}/{1}/user/-/{resource}/goal{postfix}.json".format(
             *self._get_common_args(),
             resource=resource,
             postfix=('s/' + period) if period else ''
         )
-        return self.make_request(url, data=data)
+        return self.make_request(url, data=data or {})
 
     def _filter_nones(self, data):
         filter_nones = lambda item: item[1] is not None
@@ -534,7 +534,7 @@ class Fitbit(object):
         if end_date:
             end = self._get_date_string(end_date)
         else:
-            if not period in Fitbit.PERIODS:
+            if period not in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s"
                                  % ','.join(Fitbit.PERIODS))
             end = period
@@ -569,7 +569,7 @@ class Fitbit(object):
         the detail-level is now (OAuth 2.0 ):
         either "1min" or "15min" (optional). "1sec" for heart rate.
         """
-        if not detail_level in ['1sec', '1min', '15min']:
+        if detail_level not in ['1sec', '1min', '15min']:
             raise ValueError("Period must be either '1sec', '1min', or '15min'")
 
         url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
@@ -700,7 +700,7 @@ class Fitbit(object):
 
     def get_devices(self):
         """
-		https://dev.fitbit.com/docs/devices/#get-devices
+        https://dev.fitbit.com/docs/devices/#get-devices
         """
         url = "{0}/{1}/user/-/devices.json".format(*self._get_common_args())
         return self.make_request(url)
@@ -901,7 +901,7 @@ class Fitbit(object):
         kwargs = {'type_': type_}
         base_url = "{0}/{1}/user/{2}/body/log/{type_}/date/{date_string}.json"
         if period:
-            if not period in Fitbit.PERIODS:
+            if period not in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s" %
                                  ','.join(Fitbit.PERIODS))
             kwargs['date_string'] = '/'.join([base_date_string, period])
@@ -925,7 +925,7 @@ class Fitbit(object):
         """
         https://dev.fitbit.com/docs/friends/#get-friends-leaderboard
         """
-        if not period in ['7d', '30d']:
+        if period not in ['7d', '30d']:
             raise ValueError("Period must be one of '7d', '30d'")
         url = "{0}/{1}/user/-/friends/leaders/{period}.json".format(
             *self._get_common_args(),

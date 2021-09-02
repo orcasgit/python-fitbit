@@ -1,3 +1,9 @@
+0.3.2 (2021-09-02)
+==================
+* Fixed wrong conditions: `x not in list` instead of `not x in list`
+* Replaced mutable arguments with immutable
+* Extended list Python versions supporting
+
 0.3.1 (2019-05-24)
 ==================
 * Fix auth with newer versions of OAuth libraries while retaining backward compatibility
