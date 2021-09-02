@@ -6,7 +6,10 @@ import re
 from setuptools import setup
 
 required = [line for line in open('requirements/base.txt').read().split("\n") if line != '']
-required_test = [line for line in open('requirements/test.txt').read().split("\n") if not line.startswith("-r") and line != '']
+required_test = [
+    line for line in open('requirements/test.txt').read().split("\n")
+    if not line.startswith("-r") and line != ''
+]
 
 fbinit = open('fitbit/__init__.py').read()
 author = re.search("__author__ = '([^']+)'", fbinit).group(1)
@@ -38,6 +41,10 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: PyPy'
     ),
 )
