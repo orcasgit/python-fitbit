@@ -26,7 +26,7 @@ Requirements
 * Python 2.7+
 * `python-dateutil`_ (always)
 * `requests-oauthlib`_ (always)
-* `Sphinx`_ (to create the documention)
+* `Sphinx`_ (to create the documentation)
 * `tox`_ (for running the tests)
 * `coverage`_ (to create test coverage reports)
 
