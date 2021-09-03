@@ -105,7 +105,7 @@ class FitbitOauth2Client(object):
         authorization to look at their data.  Then redirect the user to that
         URL, open their browser to it, or tell them to copy the URL into their
         browser.
-            - scope: pemissions that that are being requested [default ask all]
+            - scope: permissions that that are being requested [default ask all]
             - redirect_uri: url to which the response will posted. required here
               unless you specify only one Callback URL on the fitbit app or
               you already passed it to the constructor
