@@ -801,7 +801,7 @@ class Fitbit(object):
         https://dev.fitbit.com/docs/sleep/#get-sleep-logs
         date should be a datetime.date object.
         """
-        url = "{0}/{1}/user/-/sleep/date/{year}-{month}-{day}.json".format(
+        url = "{0}/1.2/user/-/sleep/date/{year}-{month}-{day}.json".format(
             *self._get_common_args(),
             year=date.year,
             month=date.month,
