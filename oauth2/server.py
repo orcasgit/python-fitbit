@@ -1,24 +1,17 @@
-#!/usr/bin/env python
 import cherrypy
-import os
 import sys
 import threading
 import traceback
 import webbrowser
-import json
-
 from urllib.parse import urlparse
-from base64 import b64encode
 from fitbit.api import Fitbit
 from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
 
 class OAuth2Server:
-    CLIENT_ID = "237Z23"
-    CLIENT_SECRET = "8510ea34295dbf4e23adfc31f8002331"
     REDIRECT_URI = "http://127.0.0.1:8080/"
 
-    def __init__(self, client_id = CLIENT_ID, 
-                 client_secret = CLIENT_SECRET,
+    def __init__(self, client_id, 
+                 client_secret,
                  redirect_uri = REDIRECT_URI):
         """ Initialize the FitbitOauth2Client """
         self.success_html = """
@@ -84,28 +77,3 @@ class OAuth2Server:
         if cherrypy.engine.state == cherrypy.engine.states.STARTED:
             threading.Timer(1, cherrypy.engine.exit).start()
 
-
-if __name__ == '__main__':
-
-    # if not (len(sys.argv) == 3):
-    #     print("Arguments: client_id and client_secret")
-    #     sys.exit(1)
-
-    server = OAuth2Server(*sys.argv[1:])
-    server.browser_authorize()
-
-    profile = server.fitbit.user_profile_get()
-    print('You are authorized to access data for the user: {}'.format(
-        profile['user']['fullName']))
-
-    print('TOKEN\n=====\n')
-    for key, value in server.fitbit.client.session.token.items():
-        print('{} = {}'.format(key, value))
-
-    heart_rate_data = server.fitbit.time_series(resource='activities/heart', period='7d')
-    with(open('data_dumps/heart_rate_data.json', 'w', encoding='utf-8')) as f:
-        json.dump(heart_rate_data, f, ensure_ascii=False, indent=4)
-
-    activities_data = server.fitbit.log_activity(data=None)
-    with(open('data_dumps/activities_data.json', 'w', encoding='utf-8')) as f:
-        json.dump(activities_data, f, ensure_ascii=False, indent=4)
