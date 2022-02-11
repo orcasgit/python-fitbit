@@ -11,6 +11,8 @@ dist
 build
 env
 htmlcov
+venv
+data_dumps/
 
 # Editors
 .idea

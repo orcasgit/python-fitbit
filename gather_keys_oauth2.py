@@ -5,16 +5,21 @@ import sys
 import threading
 import traceback
 import webbrowser
+import json
 
 from urllib.parse import urlparse
 from base64 import b64encode
 from fitbit.api import Fitbit
 from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
 
-
 class OAuth2Server:
-    def __init__(self, client_id, client_secret,
-                 redirect_uri='http://127.0.0.1:8080/'):
+    CLIENT_ID = "237Z23"
+    CLIENT_SECRET = "8510ea34295dbf4e23adfc31f8002331"
+    REDIRECT_URI = "http://127.0.0.1:8080/"
+
+    def __init__(self, client_id = CLIENT_ID, 
+                 client_secret = CLIENT_SECRET,
+                 redirect_uri = REDIRECT_URI):
         """ Initialize the FitbitOauth2Client """
         self.success_html = """
             <h1>You are now authorized to access the Fitbit API!</h1>
@@ -38,7 +43,7 @@ class OAuth2Server:
         """
         url, _ = self.fitbit.client.authorize_token_url()
         # Open the web browser in a new thread for command-line browser support
-        threading.Timer(1, webbrowser.open, args=(url,)).start()
+        threading.Timer(1, webbrowser.open_new_tab, args=(url,)).start()
 
         # Same with redirect_uri hostname and port.
         urlparams = urlparse(self.redirect_uri)
@@ -82,9 +87,9 @@ class OAuth2Server:
 
 if __name__ == '__main__':
 
-    if not (len(sys.argv) == 3):
-        print("Arguments: client_id and client_secret")
-        sys.exit(1)
+    # if not (len(sys.argv) == 3):
+    #     print("Arguments: client_id and client_secret")
+    #     sys.exit(1)
 
     server = OAuth2Server(*sys.argv[1:])
     server.browser_authorize()
@@ -96,3 +101,11 @@ if __name__ == '__main__':
     print('TOKEN\n=====\n')
     for key, value in server.fitbit.client.session.token.items():
         print('{} = {}'.format(key, value))
+
+    heart_rate_data = server.fitbit.time_series(resource='activities/heart', period='7d')
+    with(open('data_dumps/heart_rate_data.json', 'w', encoding='utf-8')) as f:
+        json.dump(heart_rate_data, f, ensure_ascii=False, indent=4)
+
+    activities_data = server.fitbit.log_activity(data=None)
+    with(open('data_dumps/activities_data.json', 'w', encoding='utf-8')) as f:
+        json.dump(activities_data, f, ensure_ascii=False, indent=4)

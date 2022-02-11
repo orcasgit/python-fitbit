@@ -195,6 +195,7 @@ class Fitbit(object):
     RESOURCE_LIST = [
         'body',
         'activities',
+        'activities/heart'
         'foods/log',
         'foods/log/water',
         'sleep',
