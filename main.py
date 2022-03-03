@@ -13,8 +13,8 @@ def read_secrets(path):
     file = open(path)
     return json.load(file)
 
-def invoke_auth():
-    secrets = read_secrets("private_assets/fitbit-oauth2-secrets.json")
+def invoke_auth(secret_path):
+    secrets = read_secrets(secret_path)
     server = OAuth2Server(client_id=secrets["client_id"], client_secret=secrets["client_secret"])
     server.browser_authorize()
     return server
@@ -30,11 +30,11 @@ def get_date_range():
 
 
 if __name__ == '__main__':
-    server = invoke_auth()
+    server = invoke_auth(secret_path="private_assets/fitbit-oauth2-secrets-user.json")
     start_date, end_date = get_date_range()
     fs = firestore.FirestoreImpl(
         certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json', 
-        collect_name='fitbit')
+        collect_name='userWithPersonalApp')
     usecase = StoreUsecase(server.fitbit, fs, start_date, end_date)
     usecase.get_profile()
     usecase.get_intraday()
