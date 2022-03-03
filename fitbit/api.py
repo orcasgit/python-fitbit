@@ -85,6 +85,8 @@ class FitbitOauth2Client(object):
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
+
+        print("Requesting", url)
         data = data or {}
         method = method or ('POST' if data else 'GET')
         response = self._request(
@@ -548,7 +550,7 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
-    def intraday_time_series(self, resource, base_date='today', detail_level='1min', start_time=None, end_time=None):
+    def intraday_time_series(self, resource, start_date='today', end_date='today', detail_level='1min', start_time=None, end_time=None):
         """
         The intraday time series extends the functionality of the regular time series, but returning data at a
         more granular level for a single day, defaulting to 1 minute intervals. To access this feature, one must
@@ -573,10 +575,11 @@ class Fitbit(object):
         if not detail_level in ['1sec', '1min', '15min']:
             raise ValueError("Period must be either '1sec', '1min', or '15min'")
 
-        url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
+        url = "{0}/{1}/user/-/activities/{resource}/date/{start_date}/{end_date}/{detail_level}".format(
             *self._get_common_args(),
             resource=resource,
-            base_date=self._get_date_string(base_date),
+            start_date=self._get_date_string(start_date),
+            end_date=self._get_date_string(end_date),
             detail_level=detail_level
         )
 
