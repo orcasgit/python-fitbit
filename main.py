@@ -7,6 +7,7 @@ from firebase_admin import credentials, firestore
 from oauth2.server import OAuth2Server
 from fitbit.api import Fitbit
 from persistance import firestore
+from persistance.csv import Csv
 from persistance.usecase import StoreUsecase
 from datetime import datetime, timedelta
 
@@ -38,12 +39,13 @@ def get_date_range():
     return start_date, end_date
 
 if __name__ == '__main__':
-    server = invoke_auth(secret_path="private_assets/fitbit-oauth2-secrets-user.json")
+    server = invoke_auth(secret_path="private_assets/fitbit-oauth2-secrets-dev.json")
     start_date, end_date = get_date_range()
-    fs = firestore.FirestoreImpl(
+    fs = firestore.Firestore(
         certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json', 
-        collect_name='userWithPersonalApp')
-    usecase = StoreUsecase(server.fitbit, fs, start_date, end_date)
+        collect_name='userWithServerApp')
+    csv = Csv()
+    usecase = StoreUsecase(server.fitbit, fs, csv, start_date, end_date)
     usecase.get_profile()
     usecase.get_intraday()
     usecase.get_time_series()
