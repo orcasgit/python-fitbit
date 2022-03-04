@@ -11,9 +11,9 @@ class StoreUsecase():
 
     def get_profile(self):
         profile = self.fitbit.user_profile_get()['user']
-        print("\n\n--------------------------------------------------")
+        print("\n--------------------------------------------------")
         print('You are authorized to access data for the user: {}'.format(profile['fullName']))
-        print("--------------------------------------------------")
+        print("--------------------------------------------------\n")
         self.firestore.store_profile(profile)
         return profile['encodedId']
 
@@ -53,3 +53,15 @@ class StoreUsecase():
         #     resource="floors", 
         #     start_date=self.start_date,
         #     end_date=self.end_date)
+
+    def get_resources(self):
+        return
+    
+    def get_time_series(self):
+        sleeps = self.fitbit.time_series(
+            resource='sleep', 
+            api_version=1.2,
+            base_date=self.start_date,
+            end_date=self.end_date)
+        self.firestore.store_time_series(data=sleeps, doc_name="sleeps")
+

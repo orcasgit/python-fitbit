@@ -8,6 +8,7 @@ from oauth2.server import OAuth2Server
 from fitbit.api import Fitbit
 from persistance import firestore
 from persistance.usecase import StoreUsecase
+from datetime import datetime
 
 def read_secrets(path):
     file = open(path)
@@ -20,14 +21,22 @@ def invoke_auth(secret_path):
     return server
 
 def get_date_range():
-    # print("Insert start time (YYYY-MM-DD): ",)
-    # start_date = input()
-    # print("Insert end time (YYYY-MM-DD): ")
-    # end_date = input()
+    print("\n--------------------------------------------------")
+    today = datetime.today().strftime('%Y-%m-%d')
+    print("Insert start time (YYYY-MM-DD): ",)
+    start_date = today #input()
+    print("Insert end time (YYYY-MM-DD): ")
+    end_date = today #input()
 
-    # return start_date, end_date
-    return "today", "today"
+    time_test = lambda t: not (t is None or isinstance(t, str) and not t)
+    time_map = list(map(time_test, [start_date, end_date]))
+    if not all(time_map) and any(time_map):
+        raise TypeError('You must provide both the end and start time or neither')
 
+    print("Getting data in the date ranging from {start_date} to {end_date}".format(
+        start_date=start_date, end_date=end_date))
+
+    return start_date, end_date
 
 if __name__ == '__main__':
     server = invoke_auth(secret_path="private_assets/fitbit-oauth2-secrets-user.json")
@@ -37,9 +46,5 @@ if __name__ == '__main__':
         collect_name='userWithPersonalApp')
     usecase = StoreUsecase(server.fitbit, fs, start_date, end_date)
     usecase.get_profile()
-    usecase.get_intraday()
-
-    # heart_rate_data = server.fitbit.time_series(resource='activities/heart', period='7d')
-    # activities_data = server.fitbit.log_activity(data=None)
-    # fs.store_activities(heart_rate_data, "heart_rate")
-    # fs.store_activities(activities_data, "activities_summary")
+    # usecase.get_intraday()
+    usecase.get_time_series()

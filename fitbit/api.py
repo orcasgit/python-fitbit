@@ -301,8 +301,8 @@ class Fitbit(object):
         url = "{0}/{1}/user/-/profile.json".format(*self._get_common_args())
         return self.make_request(url, data)
 
-    def _get_common_args(self, user_id=None):
-        common_args = (self.API_ENDPOINT, self.API_VERSION,)
+    def _get_common_args(self, user_id=None, api_version = API_VERSION):
+        common_args = (self.API_ENDPOINT, api_version,)
         if not user_id:
             user_id = '-'
         common_args += (user_id,)
@@ -515,7 +515,7 @@ class Fitbit(object):
         data = self._filter_nones({'target': target})
         return self._resource_goal('foods/log/water', data)
 
-    def time_series(self, resource, user_id=None, base_date='today',
+    def time_series(self, resource, api_version=API_VERSION, user_id=None, base_date='today',
                     period=None, end_date=None):
         """
         The time series is a LOT of methods, (documented at urls below) so they
@@ -543,7 +543,7 @@ class Fitbit(object):
             end = period
 
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
-            *self._get_common_args(user_id),
+            *self._get_common_args(user_id, api_version=api_version),
             resource=resource,
             base_date=self._get_date_string(base_date),
             end=end
