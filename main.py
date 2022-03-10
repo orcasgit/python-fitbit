@@ -8,7 +8,7 @@ from oauth2.server import OAuth2Server
 from fitbit.api import Fitbit
 from persistance import firestore
 from persistance.csv import Csv
-from persistance.usecase import StoreUsecase
+from persistance.repository import Repository
 from datetime import datetime, timedelta
 
 def read_secrets(path):
@@ -45,7 +45,8 @@ if __name__ == '__main__':
         certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json', 
         collect_name='userWithServerApp')
     csv = Csv()
-    usecase = StoreUsecase(server.fitbit, fs, csv, start_date, end_date)
-    usecase.get_profile()
-    usecase.get_intraday()
-    usecase.get_time_series()
+    repository = Repository(server.fitbit, fs, csv, start_date, end_date)
+    
+    repository.get_profile()
+    repository.get_intraday()
+    repository.get_time_series()

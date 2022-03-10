@@ -6,7 +6,7 @@ from oauth2.server import OAuth2Server
 from persistance.csv import Csv
 from persistance.firestore import Firestore
 
-class StoreUsecase():
+class Repository():
     def __init__(self, fitbit: Fitbit, firestore: Firestore, csv: Csv, start_date, end_date):
         self.fitbit = fitbit
         self.firestore = firestore
