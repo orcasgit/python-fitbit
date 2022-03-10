@@ -6,9 +6,9 @@ import sys
 from firebase_admin import credentials, firestore
 from oauth2.server import OAuth2Server
 from fitbit.api import Fitbit
-from persistance import firestore
-from persistance.csv import Csv
-from persistance.repository import Repository
+from repository import firestore
+from repository.csv import Csv
+from repository.repository import Repository
 from datetime import datetime, timedelta
 
 def read_secrets(path):
