@@ -1,14 +1,10 @@
-import firebase_admin
-from firebase_admin import credentials
 from firebase_admin import firestore
 
 from repository.local_storage import LocalStorage
 
 class Firestore(LocalStorage):
-    def __init__(self, certificate_path, collect_name) -> None:
+    def __init__(self, collect_name) -> None:
         super().__init__("Firestore")
-        cred = credentials.Certificate(certificate_path)
-        firebase_admin.initialize_app(cred)
         self.db = firestore.client()
         self.collect_root = self.db.collection(collect_name)
 

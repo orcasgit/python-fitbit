@@ -5,12 +5,14 @@ from fitbit.exceptions import HTTPBadRequest
 from oauth2.server import OAuth2Server
 from repository.csv import Csv
 from repository.firestore import Firestore
+from repository.realtime_database import Realtime
 
 class Repository():
-    def __init__(self, fitbit: Fitbit, firestore: Firestore, csv: Csv, start_date, end_date):
+    def __init__(self, fitbit: Fitbit, firestore: Firestore, csv: Csv, rdb: Realtime, start_date, end_date):
         self.fitbit = fitbit
         self.firestore = firestore
         self.csv = csv
+        self.rdb = rdb
         self.start_date = start_date
         self.end_date = end_date
     
@@ -22,6 +24,7 @@ class Repository():
         print("\n--------------------------------------------------")
         print('You are authorized to access data for the user: {}'.format(profile['fullName']))
         print("--------------------------------------------------\n")
+        self.rdb.store_profile(profile)
         self.firestore.store_profile(profile)
         self.csv.store_profile(profile)
         return profile['encodedId']
@@ -33,6 +36,7 @@ class Repository():
                 resource="steps", 
                 start_date=date,
                 end_date=date)
+            self.rdb.store_intraday(data=steps, date=date, doc_name="steps")
             self.firestore.store_intraday(data=steps, date=date, doc_name="steps")
             self.csv.store_intraday(data=steps, date=date, doc_name="steps")
 
@@ -40,6 +44,7 @@ class Repository():
                 resource="calories", 
                 start_date=date,
                 end_date=date)
+            self.rdb.store_intraday(data=calories, date=date, doc_name="calories")
             self.firestore.store_intraday(data=calories, date=date, doc_name="calories")
             self.csv.store_intraday(data=calories, date=date, doc_name="calories")
             
@@ -47,6 +52,7 @@ class Repository():
                 resource="distance", 
                 start_date=date,
                 end_date=date)
+            self.rdb.store_intraday(data=distance, date=date, doc_name="distance")
             self.firestore.store_intraday(data=distance, date=date, doc_name="distance")
             self.csv.store_intraday(data=calories, date=date, doc_name="calories")
 
@@ -54,6 +60,7 @@ class Repository():
                 resource="heart", 
                 start_date=date,
                 end_date=date)
+            self.rdb.store_intraday(data=heart, date=date, doc_name="heart")
             self.firestore.store_intraday(data=heart, date=date, doc_name="heart")
             self.csv.store_intraday(data=heart, date=date, doc_name="heart")
 
@@ -62,6 +69,7 @@ class Repository():
                     resource="elevation", 
                     start_date=date,
                     end_date=date)
+                self.rdb.store_intraday(data=elevation, date=date, doc_name="elevation")
                 self.firestore.store_intraday(data=elevation, date=date, doc_name="elevation")
                 self.csv.store_intraday(data=elevation, date=date, doc_name="elevation")
             except HTTPBadRequest as e:
@@ -72,6 +80,7 @@ class Repository():
                     resource="floors", 
                     start_date=date,
                     end_date=date)
+                self.rdb.store_intraday(data=floors, date=date, doc_name="floors")
                 self.firestore.store_intraday(data=floors, date=date, doc_name="floors")
                 self.csv.store_intraday(data=floors, date=date, doc_name="floors")
             except HTTPBadRequest as e:
@@ -83,6 +92,7 @@ class Repository():
             api_version=1.2,
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=sleeps, doc_name="sleeps")
         self.firestore.store_time_series(data=sleeps, doc_name="sleeps")
         self.csv.store_time_series(data=sleeps, doc_name="sleeps")
 
@@ -90,6 +100,7 @@ class Repository():
             resource='activities/heart',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=heart_rates, doc_name="heart_rates")
         self.firestore.store_time_series(data=heart_rates, doc_name="heart_rates")
         self.csv.store_time_series(data=heart_rates, doc_name="heart_rates")
 
@@ -97,6 +108,7 @@ class Repository():
             resource='activities/activityCalories',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=activity_calories, doc_name="activity_calories")
         self.firestore.store_time_series(data=activity_calories, doc_name="activity_calories")
         self.csv.store_time_series(data=activity_calories, doc_name="activity_calories")
 
@@ -104,6 +116,7 @@ class Repository():
             resource='activities/calories',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=calories, doc_name="calories")
         self.firestore.store_time_series(data=calories, doc_name="calories")
         self.csv.store_time_series(data=calories, doc_name="calories")
 
@@ -111,6 +124,7 @@ class Repository():
             resource='activities/caloriesBMR',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=calories_bmr, doc_name="calories_bmr")
         self.firestore.store_time_series(data=calories_bmr, doc_name="calories_bmr")
         self.csv.store_time_series(data=calories_bmr, doc_name="calories_bmr")
 
@@ -118,6 +132,7 @@ class Repository():
             resource='activities/distance',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=distance, doc_name="distance")
         self.firestore.store_time_series(data=distance, doc_name="distance")
         self.csv.store_time_series(data=distance, doc_name="distance")
 
@@ -126,6 +141,7 @@ class Repository():
                 resource='activities/elevation',
                 base_date=self.start_date,
                 end_date=self.end_date)
+            self.rdb.store_time_series(data=elevation, doc_name="elevation")
             self.firestore.store_time_series(data=elevation, doc_name="elevation")
             self.csv.store_time_series(data=elevation, doc_name="elevation")
         except HTTPBadRequest as e:
@@ -136,6 +152,7 @@ class Repository():
                 resource='activities/floors',
                 base_date=self.start_date,
                 end_date=self.end_date)
+            self.rdb.store_time_series(data=floors, doc_name="floors")
             self.firestore.store_time_series(data=floors, doc_name="floors")
             self.csv.store_time_series(data=floors, doc_name="floors")
         except HTTPBadRequest as e:
@@ -145,6 +162,7 @@ class Repository():
             resource='activities/minutesSedentary',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=minutes_sedentary, doc_name="minutes_sedentary")
         self.firestore.store_time_series(data=minutes_sedentary, doc_name="minutes_sedentary")
         self.csv.store_time_series(data=minutes_sedentary, doc_name="minutes_sedentary")
 
@@ -152,6 +170,7 @@ class Repository():
             resource='activities/minutesLightlyActive',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=minutes_lightly_active, doc_name="minutes_lightly_active")
         self.firestore.store_time_series(data=minutes_lightly_active, doc_name="minutes_lightly_active")
         self.csv.store_time_series(data=minutes_lightly_active, doc_name="minutes_lightly_active")
 
@@ -159,6 +178,7 @@ class Repository():
             resource='activities/minutesFairlyActive',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=minutes_fairly_active, doc_name="minutes_fairly_active")
         self.firestore.store_time_series(data=minutes_fairly_active, doc_name="minutes_fairly_active")
         self.csv.store_time_series(data=minutes_fairly_active, doc_name="minutes_fairly_active")
 
@@ -166,6 +186,7 @@ class Repository():
             resource='activities/minutesVeryActive',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=minutes_very_active, doc_name="minutes_very_active")
         self.firestore.store_time_series(data=minutes_very_active, doc_name="minutes_very_active")
         self.csv.store_time_series(data=minutes_very_active, doc_name="minutes_very_active")
 
@@ -173,6 +194,7 @@ class Repository():
             resource='activities/steps',
             base_date=self.start_date,
             end_date=self.end_date)
+        self.rdb.store_time_series(data=steps, doc_name="steps")
         self.firestore.store_time_series(data=steps, doc_name="steps")
         self.csv.store_time_series(data=steps, doc_name="steps")
 
