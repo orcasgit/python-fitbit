@@ -17,3 +17,4 @@ private_assets
 
 # Editors
 .idea
+.vscode
