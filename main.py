@@ -31,9 +31,9 @@ def init_firebase(certificate_path, database_url):
 def get_date_range():
     print("\n--------------------------------------------------")
     print("Insert start time (YYYY-MM-DD): ",)
-    start_date = datetime.strptime("2022-3-9", '%Y-%m-%d')
+    start_date = datetime.strptime(input(), '%Y-%m-%d')
     print("Insert end time (YYYY-MM-DD): ")
-    end_date = datetime.strptime("2022-3-10", '%Y-%m-%d')
+    end_date = datetime.strptime(input(), '%Y-%m-%d')
 
     time_test = lambda t: not (t is None or isinstance(t, str) and not t)
     time_map = list(map(time_test, [start_date, end_date]))
@@ -46,13 +46,13 @@ def get_date_range():
     return start_date, end_date
 
 if __name__ == '__main__':
-    secrets = read_secrets("private_assets/fitbit-oauth2-secrets-user.json")
+    secrets = read_secrets("private_assets/fitbit-oauth2-secrets-dev.json")
     server = invoke_auth(client_id=secrets["client_id"], client_secret=secrets["client_secret"])
     init_firebase(
         certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json',
         database_url=secrets["realtime_db_url"])
     start_date, end_date = get_date_range()
-    root = 'userWithPersonalApp'
+    root = 'userWithServerApp'
     fs = firestore.Firestore(collect_name=root)
     rdb = realtime_database.Realtime(root=root)
     csv = Csv()

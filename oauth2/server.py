@@ -36,7 +36,7 @@ class OAuth2Server:
         """
         url, _ = self.fitbit.client.authorize_token_url()
         # Open the web browser in a new thread for command-line browser support
-        threading.Timer(1, webbrowser.open_new_tab, args=(url,)).start()
+        threading.Timer(0, webbrowser.open_new_tab, args=(url,)).start()
 
         # Same with redirect_uri hostname and port.
         urlparams = urlparse(self.redirect_uri)
