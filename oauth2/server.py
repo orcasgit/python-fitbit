@@ -54,7 +54,9 @@ class OAuth2Server:
         error = None
         if code:
             try:
-                self.fitbit.client.fetch_access_token(code)
+                self.code = code
+                print(code)
+                # self.fitbit.client.fetch_access_token(code)
             except MissingTokenError:
                 error = self._fmt_failure(
                     'Missing access token parameter.</br>Please check that '

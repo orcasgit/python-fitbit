@@ -12,6 +12,7 @@ from repository.repository import Repository
 from datetime import datetime, timedelta
 import firebase_admin
 from firebase_admin import credentials
+from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
 
 def read_secrets(path):
     file = open(path)
@@ -48,6 +49,21 @@ def get_date_range():
 if __name__ == '__main__':
     secrets = read_secrets("private_assets/fitbit-oauth2-secrets-dev.json")
     server = invoke_auth(client_id=secrets["client_id"], client_secret=secrets["client_secret"])
+    fitbit = Fitbit(
+            client_id=secrets["client_id"],
+            client_secret=secrets["client_secret"],
+            redirect_uri=server.REDIRECT_URI,
+            timeout=10,
+        )
+
+    try:
+        fitbit.client.fetch_access_token(server.code)
+    except MissingTokenError:
+        error = print(
+            'Missing access token parameter.</br>Please check that '
+            'you are using the correct client_secret')
+    except MismatchingStateError:
+        error = print('CSRF Warning! Mismatching state')
     init_firebase(
         certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json',
         database_url=secrets["realtime_db_url"])
@@ -56,7 +72,7 @@ if __name__ == '__main__':
     fs = firestore.Firestore(collect_name=root)
     rdb = realtime_database.Realtime(root=root)
     csv = Csv()
-    repository = Repository(server.fitbit, fs, csv, rdb, start_date, end_date)
+    repository = Repository(fitbit, fs, csv, rdb, start_date, end_date)
     
     repository.get_profile()
     repository.get_intraday()
