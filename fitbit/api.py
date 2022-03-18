@@ -85,6 +85,8 @@ class FitbitOauth2Client(object):
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
+
+        print("Requesting", url)
         data = data or {}
         method = method or ('POST' if data else 'GET')
         response = self._request(
@@ -299,8 +301,8 @@ class Fitbit(object):
         url = "{0}/{1}/user/-/profile.json".format(*self._get_common_args())
         return self.make_request(url, data)
 
-    def _get_common_args(self, user_id=None):
-        common_args = (self.API_ENDPOINT, self.API_VERSION,)
+    def _get_common_args(self, user_id=None, api_version = API_VERSION):
+        common_args = (self.API_ENDPOINT, api_version,)
         if not user_id:
             user_id = '-'
         common_args += (user_id,)
@@ -513,7 +515,7 @@ class Fitbit(object):
         data = self._filter_nones({'target': target})
         return self._resource_goal('foods/log/water', data)
 
-    def time_series(self, resource, user_id=None, base_date='today',
+    def time_series(self, resource, api_version=API_VERSION, user_id=None, base_date='today',
                     period=None, end_date=None):
         """
         The time series is a LOT of methods, (documented at urls below) so they
@@ -541,14 +543,14 @@ class Fitbit(object):
             end = period
 
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
-            *self._get_common_args(user_id),
+            *self._get_common_args(user_id, api_version=api_version),
             resource=resource,
             base_date=self._get_date_string(base_date),
             end=end
         )
         return self.make_request(url)
 
-    def intraday_time_series(self, resource, base_date='today', detail_level='1min', start_time=None, end_time=None):
+    def intraday_time_series(self, resource, start_date='today', end_date='today', detail_level='1min', start_time=None, end_time=None):
         """
         The intraday time series extends the functionality of the regular time series, but returning data at a
         more granular level for a single day, defaulting to 1 minute intervals. To access this feature, one must
@@ -573,10 +575,11 @@ class Fitbit(object):
         if not detail_level in ['1sec', '1min', '15min']:
             raise ValueError("Period must be either '1sec', '1min', or '15min'")
 
-        url = "{0}/{1}/user/-/{resource}/date/{base_date}/1d/{detail_level}".format(
+        url = "{0}/{1}/user/-/activities/{resource}/date/{start_date}/{end_date}/{detail_level}".format(
             *self._get_common_args(),
             resource=resource,
-            base_date=self._get_date_string(base_date),
+            start_date=self._get_date_string(start_date),
+            end_date=self._get_date_string(end_date),
             detail_level=detail_level
         )
 

@@ -12,7 +12,9 @@ build
 env
 htmlcov
 venv
-data_dumps/
+data_dumps
+private_assets
 
 # Editors
 .idea
+.vscode
