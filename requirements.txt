@@ -1,0 +1,7 @@
+firebase_admin==5.2.0
+google_crc32c==1.3.0
+oauthlib==3.1.1
+pandas==1.4.0
+protobuf==3.19.4
+requests==2.27.1
+requests_oauthlib==1.3.1
