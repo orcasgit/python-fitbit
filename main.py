@@ -1,26 +1,21 @@
 #!/usr/bin/env python
 from http import client
 import json
+import os
 import sys
+from tracemalloc import start
 
 from firebase_admin import credentials, firestore
-from oauth2.server import OAuth2Server
-from fitbit.api import Fitbit
+from fitbit.fitbit_client import Fitbit
 from repository import firestore, realtime_database
 from repository.csv import Csv
-from repository.repository import Repository
-from datetime import datetime, timedelta
+from repository.gcloud import GoogleCloud
+from repository.gcloud_repository import GoogleCloudRepository
+from repository.fitbit_repository import Repository
+from datetime import date, datetime, timedelta
 import firebase_admin
 from firebase_admin import credentials
-
-def read_secrets(path):
-    file = open(path)
-    return json.load(file)
-
-def invoke_auth(client_id, client_secret):
-    server = OAuth2Server(client_id=client_id, client_secret=client_secret)
-    server.browser_authorize()
-    return server
+from oauthlib.oauth2.rfc6749.errors import MismatchingStateError, MissingTokenError
 
 def init_firebase(certificate_path, database_url):
     cred = credentials.Certificate(certificate_path)
@@ -28,36 +23,42 @@ def init_firebase(certificate_path, database_url):
         'databaseURL': database_url
         })
 
-def get_date_range():
-    print("\n--------------------------------------------------")
-    print("Insert start time (YYYY-MM-DD): ",)
-    start_date = datetime.strptime(input(), '%Y-%m-%d')
-    print("Insert end time (YYYY-MM-DD): ")
-    end_date = datetime.strptime(input(), '%Y-%m-%d')
-
-    time_test = lambda t: not (t is None or isinstance(t, str) and not t)
-    time_map = list(map(time_test, [start_date, end_date]))
-    if not all(time_map) and any(time_map):
-        raise TypeError('You must provide both the end and start time or neither')
-
-    print("Getting data in the date ranging from {start_date} to {end_date}".format(
-        start_date=start_date.strftime('%Y-%m-%d'), end_date=end_date.strftime('%Y-%m-%d')))
-
-    return start_date, end_date
+def refresh(token):
+    secrets = gc_repository.get_users_secrets()
+    user_secret = [d for d in secrets if d["user_id"] == token["user_id"]]
+    gc_repository.add_secret_version(secret_id=user_secret[0]["secret_id"], payload=token)
+    pass
 
 if __name__ == '__main__':
-    secrets = read_secrets("private_assets/fitbit-oauth2-secrets-dev.json")
-    server = invoke_auth(client_id=secrets["client_id"], client_secret=secrets["client_secret"])
-    init_firebase(
-        certificate_path='private_assets/tigerawarefitbitdev-firebase-adminsdk-1kn23-4e47246d45.json',
-        database_url=secrets["realtime_db_url"])
-    start_date, end_date = get_date_range()
-    root = 'userWithServerApp'
+    today = datetime.today()
+    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/reyvababtista/Projects/python-fitbit/secrets/tigerawaredev-6692e3e245ac.json"
+    
+    gc = GoogleCloud("tigerawaredev")
+    gc_repository = GoogleCloudRepository(gc=gc)
+    firebase_credentials = gc_repository.get_firebase_credential()
+    firebase_realtime_db_url = gc_repository.get_realtime_db_url()
+
+    init_firebase(certificate_path=firebase_credentials, database_url=firebase_realtime_db_url)
+
+    root = 'fitbit'
     fs = firestore.Firestore(collect_name=root)
     rdb = realtime_database.Realtime(root=root)
     csv = Csv()
-    repository = Repository(server.fitbit, fs, csv, rdb, start_date, end_date)
+    repository = Repository(fs, csv, rdb)
     
-    repository.get_profile()
-    repository.get_intraday()
-    repository.get_time_series()
+    secrets = gc_repository.get_users_secrets()
+    for secret in secrets:
+        start_date = datetime.strptime(secret["start_date"], '%Y-%m-%d')
+        end_date = datetime.strptime(secret["end_date"], '%Y-%m-%d') + timedelta(days=1)
+        if (start_date <= today and today <= end_date):
+            fitbit = Fitbit(
+                    client_id=secret["client_id"],
+                    client_secret=secret["client_secret"],
+                    access_token=secret["access_token"],
+                    refresh_token=secret["refresh_token"],
+                    refresh_cb=refresh
+                )
+            repository.set_config(fitbit=fitbit, date=today)
+            repository.get_profile()
+            repository.get_intraday()
+            repository.get_time_series()

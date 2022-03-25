@@ -9,9 +9,10 @@ MissingTokenError.
 from json import loads, dumps
 
 from oauthlib.common import to_unicode
+from requests_oauthlib import OAuth2Session
 
 
-def fitbit_compliance_fix(session):
+def fitbit_compliance_fix(session: OAuth2Session):
 
     def _missing_error(r):
         token = loads(r.text)
