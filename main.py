@@ -31,7 +31,7 @@ def refresh(token):
 
 if __name__ == '__main__':
     today = datetime.today()
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/reyvababtista/Projects/python-fitbit/secrets/tigerawaredev-6692e3e245ac.json"
+    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/reyvababtista/Projects/python-fitbit/secrets/tigerawaredev-6692e3e245ac.json"
     
     gc = GoogleCloud("tigerawaredev")
     gc_repository = GoogleCloudRepository(gc=gc)
