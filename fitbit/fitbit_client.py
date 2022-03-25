@@ -361,7 +361,7 @@ class Fitbit(object):
         return self._resource_goal('foods/log/water', data)
 
     def time_series(self, resource, api_version=API_VERSION, user_id=None, base_date='today',
-                    period=None, end_date=None):
+                    period=None, end_date='today'):
         """
         The time series is a LOT of methods, (documented at urls below) so they
         don't get their own method. They all follow the same patterns, and

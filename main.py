@@ -60,5 +60,5 @@ if __name__ == '__main__':
                 )
             repository.set_config(fitbit=fitbit, date=today)
             repository.get_profile()
-            # repository.get_intraday()
-            # repository.get_time_series()
+            repository.get_intraday()
+            repository.get_time_series()
