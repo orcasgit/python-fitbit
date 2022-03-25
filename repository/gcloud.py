@@ -4,7 +4,7 @@ import google_crc32c
 import json
 
 class GoogleCloud():
-    def __init__(self, project_id) -> None:
+    def __init__(self) -> None:
         self.client = secretmanager.SecretManagerServiceClient()
         pass
 
@@ -14,19 +14,21 @@ class GoogleCloud():
         crc32c.update(response.payload.data)
         if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
             print("Data corruption detected.")
-            return response
+        
+        return response
 
     def get_secrets(self, project_id, filter = "labels.domain:fitbit AND labels.type:fitbit-user"):
         self.project_id = project_id
         self.parent = f"projects/{project_id}"
+        secrets = self.client.list_secrets(request={"parent": self.parent, "filter": filter})
+        payloads = []
 
-        # List all secrets.
-        for secret in self.client.list_secrets(request={"parent": self.parent, "filter": filter}):
+        for secret in secrets:
             print("Found secret: {}".format(secret.name))
             name = f"{secret.name}/versions/latest"
             response = self.client.access_secret_version(request={"name": name})
             response = self._verify_checksum(response)
             payload = json.loads(response.payload.data.decode("UTF-8"))
+            payloads.append(payload)
 
-foo = GoogleCloud()
-foo.get_secrets("tigerawaredev")
+        return payloads
