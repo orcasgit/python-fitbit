@@ -11,6 +11,7 @@ except ImportError:
     # Python 2.x
     from urllib import urlencode
 
+
 class Fitbit(object):
     """
     Before using this class, create a Fitbit app
@@ -38,7 +39,14 @@ class Fitbit(object):
 
     API_ENDPOINT = "https://api.fitbit.com"
     API_VERSION = 1
-    WEEK_DAYS = ['SUNDAY', 'MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY']
+    WEEK_DAYS = [
+        'SUNDAY',
+        'MONDAY',
+        'TUESDAY',
+        'WEDNESDAY',
+        'THURSDAY',
+        'FRIDAY',
+        'SATURDAY']
     PERIODS = ['1d', '7d', '30d', '1w', '1m', '3m', '6m', '1y', 'max']
 
     RESOURCE_LIST = [
@@ -59,8 +67,16 @@ class Fitbit(object):
         'frequent',
     ]
 
-    def __init__(self, client_id=None, client_secret=None, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None, system=US, **kwargs):
+    def __init__(
+            self,
+            client_id=None,
+            client_secret=None,
+            access_token=None,
+            refresh_token=None,
+            expires_at=None,
+            refresh_cb=None,
+            system=US,
+            **kwargs):
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
@@ -89,7 +105,13 @@ class Fitbit(object):
                     self._DELETE_COLLECTION_RESOURCE, resource))
 
         for qualifier in Fitbit.QUALIFIERS:
-            setattr(self, '%s_activities' % qualifier, curry(self.activity_stats, qualifier=qualifier))
+            setattr(
+                self,
+                '%s_activities' %
+                qualifier,
+                curry(
+                    self.activity_stats,
+                    qualifier=qualifier))
             setattr(self, '%s_foods' % qualifier, curry(self._food_stats,
                                                         qualifier=qualifier))
 
@@ -129,7 +151,8 @@ class Fitbit(object):
 
         https://dev.fitbit.com/docs/user/
         """
-        url = "{0}/{1}/user/{2}/profile.json".format(*self._get_common_args(user_id))
+        url = "{0}/{1}/user/{2}/profile.json".format(
+            *self._get_common_args(user_id))
         return self.make_request(url)
 
     def user_profile_update(self, data):
@@ -146,7 +169,7 @@ class Fitbit(object):
         url = "{0}/{1}/user/-/profile.json".format(*self._get_common_args())
         return self.make_request(url, data)
 
-    def _get_common_args(self, user_id=None, api_version = API_VERSION):
+    def _get_common_args(self, user_id=None, api_version=API_VERSION):
         common_args = (self.API_ENDPOINT, api_version,)
         if not user_id:
             user_id = '-'
@@ -232,7 +255,7 @@ class Fitbit(object):
         return self.make_request(url, data=data)
 
     def _filter_nones(self, data):
-        filter_nones = lambda item: item[1] is not None
+        def filter_nones(item): return item[1] is not None
         filtered_kwargs = list(filter(filter_nones, data.items()))
         return {} if not filtered_kwargs else dict(filtered_kwargs)
 
@@ -251,7 +274,11 @@ class Fitbit(object):
         """
         return self._resource_goal('body/log/fat', {'fat': fat} if fat else {})
 
-    def body_weight_goal(self, start_date=None, start_weight=None, weight=None):
+    def body_weight_goal(
+            self,
+            start_date=None,
+            start_weight=None,
+            weight=None):
         """
         Implements the following APIs
 
@@ -360,8 +387,14 @@ class Fitbit(object):
         data = self._filter_nones({'target': target})
         return self._resource_goal('foods/log/water', data)
 
-    def time_series(self, resource, api_version=API_VERSION, user_id=None, base_date='today',
-                    period=None, end_date='today'):
+    def time_series(
+            self,
+            resource,
+            api_version=API_VERSION,
+            user_id=None,
+            base_date='today',
+            period=None,
+            end_date='today'):
         """
         The time series is a LOT of methods, (documented at urls below) so they
         don't get their own method. They all follow the same patterns, and
@@ -377,12 +410,13 @@ class Fitbit(object):
         https://dev.fitbit.com/docs/sleep/#sleep-time-series
         """
         if period and end_date:
-            raise TypeError("Either end_date or period can be specified, not both")
+            raise TypeError(
+                "Either end_date or period can be specified, not both")
 
         if end_date:
             end = self._get_date_string(end_date)
         else:
-            if not period in Fitbit.PERIODS:
+            if period not in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s"
                                  % ','.join(Fitbit.PERIODS))
             end = period
@@ -395,7 +429,14 @@ class Fitbit(object):
         )
         return self.make_request(url)
 
-    def intraday_time_series(self, resource, start_date='today', end_date='today', detail_level='1min', start_time=None, end_time=None):
+    def intraday_time_series(
+            self,
+            resource,
+            start_date='today',
+            end_date='today',
+            detail_level='1min',
+            start_time=None,
+            end_time=None):
         """
         The intraday time series extends the functionality of the regular time series, but returning data at a
         more granular level for a single day, defaulting to 1 minute intervals. To access this feature, one must
@@ -406,10 +447,13 @@ class Fitbit(object):
         """
 
         # Check that the time range is valid
-        time_test = lambda t: not (t is None or isinstance(t, str) and not t)
+        def time_test(t): return not (
+            t is None or isinstance(
+                t, str) and not t)
         time_map = list(map(time_test, [start_time, end_time]))
         if not all(time_map) and any(time_map):
-            raise TypeError('You must provide both the end and start time or neither')
+            raise TypeError(
+                'You must provide both the end and start time or neither')
 
         """
         Per
@@ -417,16 +461,16 @@ class Fitbit(object):
         the detail-level is now (OAuth 2.0 ):
         either "1min" or "15min" (optional). "1sec" for heart rate.
         """
-        if not detail_level in ['1sec', '1min', '15min']:
-            raise ValueError("Period must be either '1sec', '1min', or '15min'")
+        if detail_level not in ['1sec', '1min', '15min']:
+            raise ValueError(
+                "Period must be either '1sec', '1min', or '15min'")
 
         url = "{0}/{1}/user/-/activities/{resource}/date/{start_date}/{end_date}/{detail_level}".format(
             *self._get_common_args(),
             resource=resource,
             start_date=self._get_date_string(start_date),
             end_date=self._get_date_string(end_date),
-            detail_level=detail_level
-        )
+            detail_level=detail_level)
 
         if all(time_map):
             url = url + '/time'
@@ -549,7 +593,7 @@ class Fitbit(object):
 
     def get_devices(self):
         """
-		https://dev.fitbit.com/docs/devices/#get-devices
+                https://dev.fitbit.com/docs/devices/#get-devices
         """
         url = "{0}/{1}/user/-/devices.json".format(*self._get_common_args())
         return self.make_request(url)
@@ -581,7 +625,9 @@ class Fitbit(object):
             raise ValueError("Week days needs to be a list")
         for day in week_days:
             if day not in self.WEEK_DAYS:
-                raise ValueError("Incorrect week day %s. see WEEK_DAY_LIST." % day)
+                raise ValueError(
+                    "Incorrect week day %s. see WEEK_DAY_LIST." %
+                    day)
         data = {
             'time': alarm_time,
             'weekDays': week_days,
@@ -598,8 +644,18 @@ class Fitbit(object):
         return self.make_request(url, data=data, method="POST")
         # return
 
-    def update_alarm(self, device_id, alarm_id, alarm_time, week_days, recurring=False, enabled=True, label=None,
-                     snooze_length=None, snooze_count=None, vibe='DEFAULT'):
+    def update_alarm(
+            self,
+            device_id,
+            alarm_id,
+            alarm_time,
+            week_days,
+            recurring=False,
+            enabled=True,
+            label=None,
+            snooze_length=None,
+            snooze_count=None,
+            vibe='DEFAULT'):
         """
         https://dev.fitbit.com/docs/devices/#update-alarm
         alarm_time should be a timezone aware datetime object.
@@ -610,12 +666,11 @@ class Fitbit(object):
             raise ValueError("Week days needs to be a list")
         for day in week_days:
             if day not in self.WEEK_DAYS:
-                raise ValueError("Incorrect week day %s. see WEEK_DAY_LIST." % day)
+                raise ValueError(
+                    "Incorrect week day %s. see WEEK_DAY_LIST." %
+                    day)
         url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms/{alarm_id}.json".format(
-            *self._get_common_args(),
-            device_id=device_id,
-            alarm_id=alarm_id
-        )
+            *self._get_common_args(), device_id=device_id, alarm_id=alarm_id)
         alarm_time = alarm_time.strftime("%H:%M%z")
 
         data = {
@@ -639,10 +694,7 @@ class Fitbit(object):
         https://dev.fitbit.com/docs/devices/#delete-alarm
         """
         url = "{0}/{1}/user/-/devices/tracker/{device_id}/alarms/{alarm_id}.json".format(
-            *self._get_common_args(),
-            device_id=device_id,
-            alarm_id=alarm_id
-        )
+            *self._get_common_args(), device_id=device_id, alarm_id=alarm_id)
         return self.make_request(url, method="DELETE")
 
     def get_sleep(self, date):
@@ -715,7 +767,12 @@ class Fitbit(object):
         url = "{0}/{1}/foods/units.json".format(*self._get_common_args())
         return self.make_request(url)
 
-    def get_bodyweight(self, base_date=None, user_id=None, period=None, end_date=None):
+    def get_bodyweight(
+            self,
+            base_date=None,
+            user_id=None,
+            period=None,
+            end_date=None):
         """
         https://dev.fitbit.com/docs/body/#get-weight-logs
         base_date should be a datetime.date object (defaults to today),
@@ -726,7 +783,12 @@ class Fitbit(object):
         """
         return self._get_body('weight', base_date, user_id, period, end_date)
 
-    def get_bodyfat(self, base_date=None, user_id=None, period=None, end_date=None):
+    def get_bodyfat(
+            self,
+            base_date=None,
+            user_id=None,
+            period=None,
+            end_date=None):
         """
         https://dev.fitbit.com/docs/body/#get-body-fat-logs
         base_date should be a datetime.date object (defaults to today),
@@ -743,14 +805,15 @@ class Fitbit(object):
             base_date = datetime.date.today()
 
         if period and end_date:
-            raise TypeError("Either end_date or period can be specified, not both")
+            raise TypeError(
+                "Either end_date or period can be specified, not both")
 
         base_date_string = self._get_date_string(base_date)
 
         kwargs = {'type_': type_}
         base_url = "{0}/{1}/user/{2}/body/log/{type_}/date/{date_string}.json"
         if period:
-            if not period in Fitbit.PERIODS:
+            if period not in Fitbit.PERIODS:
                 raise ValueError("Period must be one of %s" %
                                  ','.join(Fitbit.PERIODS))
             kwargs['date_string'] = '/'.join([base_date_string, period])
@@ -767,14 +830,15 @@ class Fitbit(object):
         """
         https://dev.fitbit.com/docs/friends/#get-friends
         """
-        url = "{0}/{1}/user/{2}/friends.json".format(*self._get_common_args(user_id))
+        url = "{0}/{1}/user/{2}/friends.json".format(
+            *self._get_common_args(user_id))
         return self.make_request(url)
 
     def get_friends_leaderboard(self, period):
         """
         https://dev.fitbit.com/docs/friends/#get-friends-leaderboard
         """
-        if not period in ['7d', '30d']:
+        if period not in ['7d', '30d']:
             raise ValueError("Period must be one of '7d', '30d'")
         url = "{0}/{1}/user/-/friends/leaders/{period}.json".format(
             *self._get_common_args(),
@@ -786,7 +850,8 @@ class Fitbit(object):
         """
         https://dev.fitbit.com/docs/friends/#invite-friend
         """
-        url = "{0}/{1}/user/-/friends/invitations.json".format(*self._get_common_args())
+        url = "{0}/{1}/user/-/friends/invitations.json".format(
+            *self._get_common_args())
         return self.make_request(url, data=data)
 
     def invite_friend_by_email(self, email):
@@ -830,7 +895,8 @@ class Fitbit(object):
         """
         https://dev.fitbit.com/docs/friends/#badges
         """
-        url = "{0}/{1}/user/{2}/badges.json".format(*self._get_common_args(user_id))
+        url = "{0}/{1}/user/{2}/badges.json".format(
+            *self._get_common_args(user_id))
         return self.make_request(url)
 
     def subscription(self, subscription_id, subscriber_id, collection=None,

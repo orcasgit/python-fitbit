@@ -3,12 +3,12 @@ from google.cloud import secretmanager
 import google_crc32c
 import json
 
+
 class GoogleCloud():
     def __init__(self, project_id) -> None:
         self.client = secretmanager.SecretManagerServiceClient()
         self.project_id = project_id
         self.parent = f"projects/{project_id}"
-        pass
 
     def _verify_checksum(self, response):
         # Verify payload checksum.
@@ -16,11 +16,14 @@ class GoogleCloud():
         crc32c.update(response.payload.data)
         if response.payload.data_crc32c != int(crc32c.hexdigest(), 16):
             print("Data corruption detected.")
-        
+
         return response
 
-    def get_secrets(self, filter = "labels.domain:fitbit AND labels.type:fitbit-user"):
-        secrets = self.client.list_secrets(request={"parent": self.parent, "filter": filter})
+    def get_secrets(
+            self,
+            filter="labels.domain:fitbit AND labels.type:fitbit-user"):
+        secrets = self.client.list_secrets(
+            request={"parent": self.parent, "filter": filter})
         payloads = []
 
         for secret in secrets:
@@ -59,9 +62,12 @@ class GoogleCloud():
         response = self.client.add_secret_version(
             request={
                 "parent": parent,
-                "payload": {"data": payload, "data_crc32c": int(crc32c.hexdigest(), 16)},
-            }
-        )
+                "payload": {
+                    "data": payload,
+                    "data_crc32c": int(
+                        crc32c.hexdigest(),
+                        16)},
+            })
 
         # Print the new secret version name.
         print("Added secret version: {}".format(response.name))
