@@ -66,8 +66,8 @@ class FitbitOauth2Client(object):
 
             # If our current token has no expires_at, or something manages to slip
             # through that check
-            print(response.status_code)
             if response.status_code == 401:
+                print("Refreshing tokens..")
                 d = json.loads(response.content.decode('utf8'))
                 if d['errors'][0]['errorType'] == 'expired_token':
                     self.refresh_token()

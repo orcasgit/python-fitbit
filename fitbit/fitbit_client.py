@@ -60,8 +60,7 @@ class Fitbit(object):
     ]
 
     def __init__(self, client_id=None, client_secret=None, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None,
-            redirect_uri=None, system=US, **kwargs):
+            refresh_token=None, expires_at=None, refresh_cb=None, system=US, **kwargs):
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """

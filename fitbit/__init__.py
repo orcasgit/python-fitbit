@@ -8,7 +8,7 @@ Fitbit API Library
 """
 
 from .oauth_client import FitbitOauth2Client
-from .fitbit import Fitbit
+from .fitbit_client import Fitbit
 
 # Meta.
 
