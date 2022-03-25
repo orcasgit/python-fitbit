@@ -18,3 +18,5 @@ private_assets
 # Editors
 .idea
 .vscode
+secrets
+data_dumps

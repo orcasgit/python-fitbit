@@ -1,10 +1,10 @@
 from datetime import date, datetime, timedelta
 import fitbit
-from fitbit.api import Fitbit
 from fitbit.exceptions import HTTPBadRequest
-from oauth2.server import OAuth2Server
+from fitbit.fitbit import Fitbit
 from repository.csv import Csv
 from repository.firestore import Firestore
+from repository.gcloud import GoogleCloud
 from repository.realtime_database import Realtime
 
 class Repository():
@@ -197,4 +197,3 @@ class Repository():
         self.rdb.store_time_series(data=steps, doc_name="steps")
         self.firestore.store_time_series(data=steps, doc_name="steps")
         self.csv.store_time_series(data=steps, doc_name="steps")
-

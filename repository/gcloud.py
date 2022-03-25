@@ -28,7 +28,11 @@ class GoogleCloud():
             name = f"{secret.name}/versions/latest"
             response = self.client.access_secret_version(request={"name": name})
             response = self._verify_checksum(response)
-            payload = json.loads(response.payload.data.decode("UTF-8"))
+            payload = response.payload.data.decode("UTF-8")
+            try:
+                payload = json.loads(payload)
+            except json.JSONDecodeError as e:
+                pass
             payloads.append(payload)
 
         return payloads
