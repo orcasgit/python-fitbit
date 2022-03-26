@@ -1,4 +1,3 @@
-from gc import collect
 
 
 class LocalStorage(object):

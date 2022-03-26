@@ -2,7 +2,8 @@
 
 from firebase_admin import credentials, firestore
 from fitbit.fitbit_client import Fitbit
-from repository import firestore, realtime_database
+from repository.firestore import Firestore
+from repository.realtime_database import Realtime
 from repository.csv import Csv
 from repository.gcloud import GoogleCloud
 from repository.gcloud_repository import GoogleCloudRepository
@@ -19,6 +20,7 @@ def init_firebase(certificate_path, database_url):
         'databaseURL': database_url
     })
 
+gc_repository: GoogleCloudRepository = None
 
 def refresh(token):
     secrets = gc_repository.get_users_secrets()
@@ -27,7 +29,7 @@ def refresh(token):
         secret_id=user_secret[0]["secret_id"], payload=token)
 
 
-if __name__ == '__main__':
+def main(request):
     today = datetime.today()
     # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/Users/reyvababtista/Projects/python-fitbit/secrets/tigerawaredev-6692e3e245ac.json"
 
@@ -40,8 +42,8 @@ if __name__ == '__main__':
                   database_url=firebase_realtime_db_url)
 
     root = 'fitbit'
-    fs = firestore.Firestore(collect_name=root)
-    rdb = realtime_database.Realtime(root=root)
+    fs = Firestore(collect_name=root)
+    rdb = Realtime(root=root)
     csv = Csv()
     repository = Repository(fs, csv, rdb)
 
@@ -62,3 +64,5 @@ if __name__ == '__main__':
             repository.get_profile()
             repository.get_intraday()
             repository.get_time_series()
+    
+    return "Done."
