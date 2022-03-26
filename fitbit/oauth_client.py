@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-import datetime
 import json
 import requests
 
 try:
-    from urllib.parse import urlencode
+    pass
 except ImportError:
     # Python 2.x
-    from urllib import urlencode
+    pass
 
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
@@ -27,8 +26,8 @@ class FitbitOauth2Client(object):
     refresh_token_url = request_token_url
 
     def __init__(self, client_id=None, client_secret=None, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None,
-            redirect_uri=None, *args, **kwargs):
+                 refresh_token=None, expires_at=None, refresh_cb=None,
+                 redirect_uri=None, *args, **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
         you have them to access user data. Specify just the first 2 parameters
@@ -108,4 +107,3 @@ class FitbitOauth2Client(object):
             self.session.token_updater(token)
 
         return token
-
