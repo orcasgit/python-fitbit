@@ -28,8 +28,8 @@ class FitbitOauth2Client(object):
     refresh_token_url = request_token_url
 
     def __init__(self, client_id, client_secret, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None,
-            redirect_uri=None, *args, **kwargs):
+                 refresh_token=None, expires_at=None, refresh_cb=None,
+                 redirect_uri=None, *args, **kwargs):
         """
         Create a FitbitOauth2Client object. Specify the first 7 parameters if
         you have them to access user data. Specify just the first 2 parameters
@@ -85,6 +85,7 @@ class FitbitOauth2Client(object):
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
+        print("making request to:", url)
         data = data or {}
         method = method or ('POST' if data else 'GET')
         response = self._request(
@@ -210,8 +211,8 @@ class Fitbit(object):
     ]
 
     def __init__(self, client_id, client_secret, access_token=None,
-            refresh_token=None, expires_at=None, refresh_cb=None,
-            redirect_uri=None, system=US, **kwargs):
+                 refresh_token=None, expires_at=None, refresh_cb=None,
+                 redirect_uri=None, system=US, **kwargs):
         """
         Fitbit(<id>, <secret>, access_token=<token>, refresh_token=<token>)
         """
@@ -298,8 +299,10 @@ class Fitbit(object):
         url = "{0}/{1}/user/-/profile.json".format(*self._get_common_args())
         return self.make_request(url, data)
 
-    def _get_common_args(self, user_id=None):
-        common_args = (self.API_ENDPOINT, self.API_VERSION,)
+    def _get_common_args(self, user_id=None, api_version=None):
+        if api_version is None:
+            api_version = self.API_VERSION
+        common_args = (self.API_ENDPOINT, api_version,)
         if not user_id:
             user_id = '-'
         common_args += (user_id,)
@@ -538,9 +541,12 @@ class Fitbit(object):
                 raise ValueError("Period must be one of %s"
                                  % ','.join(Fitbit.PERIODS))
             end = period
-
+        if 'sleep' in resource:
+            api_version = 1.2
+        else:
+            api_version = None
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
-            *self._get_common_args(user_id),
+            *self._get_common_args(user_id, api_version=api_version),
             resource=resource,
             base_date=self._get_date_string(base_date),
             end=end
@@ -802,7 +808,7 @@ class Fitbit(object):
         date should be a datetime.date object.
         """
         url = "{0}/{1}/user/-/sleep/date/{year}-{month}-{day}.json".format(
-            *self._get_common_args(),
+            *self._get_common_args(api_version=1.2),
             year=date.year,
             month=date.month,
             day=date.day
@@ -819,7 +825,7 @@ class Fitbit(object):
             'duration': duration,
             'date': start_time.strftime("%Y-%m-%d"),
         }
-        url = "{0}/{1}/user/-/sleep.json".format(*self._get_common_args())
+        url = "{0}/{1}/user/-/sleep.json".format(*self._get_common_args(api_version=1.2))
         return self.make_request(url, data=data, method="POST")
 
     def activities_list(self):
