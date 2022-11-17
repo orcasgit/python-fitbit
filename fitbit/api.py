@@ -85,6 +85,7 @@ class FitbitOauth2Client(object):
 
         https://dev.fitbit.com/docs/oauth2/#authorization-errors
         """
+        print("making request to:", url)
         data = data or {}
         method = method or ('POST' if data else 'GET')
         response = self._request(
@@ -540,9 +541,12 @@ class Fitbit(object):
                 raise ValueError("Period must be one of %s"
                                  % ','.join(Fitbit.PERIODS))
             end = period
-
+        if 'sleep' in resource:
+            api_version = 1.2
+        else:
+            api_version = None
         url = "{0}/{1}/user/{2}/{resource}/date/{base_date}/{end}.json".format(
-            *self._get_common_args(user_id),
+            *self._get_common_args(user_id, api_version=api_version),
             resource=resource,
             base_date=self._get_date_string(base_date),
             end=end
@@ -804,7 +808,7 @@ class Fitbit(object):
         date should be a datetime.date object.
         """
         url = "{0}/{1}/user/-/sleep/date/{year}-{month}-{day}.json".format(
-            *self._get_common_args(),
+            *self._get_common_args(api_version=1.2),
             year=date.year,
             month=date.month,
             day=date.day
