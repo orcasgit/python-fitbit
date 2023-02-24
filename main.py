@@ -23,6 +23,7 @@ def init_firebase(certificate_path, database_url):
 gc_repository: GoogleCloudRepository = None
 
 def refresh(token):
+    print("Refreshing token..")
     secrets = gc_repository.get_users_secrets()
     user_secret = [d for d in secrets if d["user_id"] == token["user_id"]]
     gc_repository.add_secret_version(
@@ -50,19 +51,31 @@ def main(request):
     secrets = gc_repository.get_users_secrets()
     for secret in secrets:
         start_date = datetime.strptime(secret["start_date"], '%Y-%m-%d')
+<<<<<<< Updated upstream
         end_date = datetime.strptime(
             secret["end_date"], '%Y-%m-%d') + timedelta(days=1)
         if (start_date <= today and today <= end_date):
             fitbit = Fitbit(
+=======
+        end_date = datetime.strptime(secret["end_date"], '%Y-%m-%d') + timedelta(days=1)
+        fitbit = Fitbit(
+>>>>>>> Stashed changes
                 client_id=secret["client_id"],
                 client_secret=secret["client_secret"],
                 access_token=secret["access_token"],
                 refresh_token=secret["refresh_token"],
                 refresh_cb=refresh
             )
+<<<<<<< Updated upstream
             repository.set_config(fitbit=fitbit, date=today)
             repository.get_profile()
             repository.get_intraday()
             repository.get_time_series()
     
     return "Done."
+=======
+        repository.set_config(fitbit=fitbit, date=today)
+        repository.get_profile()
+        repository.get_intraday()
+        repository.get_time_series()
+>>>>>>> Stashed changes
