@@ -684,12 +684,13 @@ class PartnerAPITest(TestBase):
     https://dev.fitbit.com/docs/
     """
 
-    def _test_intraday_timeseries(self, resource, base_date, detail_level,
-                                  start_time, end_time, expected_url):
+    def _test_intraday_timeseries(self, resource, base_date, detail_level, end_date,
+                                  start_time, end_time, timezone, expected_url):
         """ Helper method for intraday timeseries tests """
         with mock.patch.object(self.fb, 'make_request') as make_request:
             retval = self.fb.intraday_time_series(
-                resource, base_date, detail_level, start_time, end_time)
+                resource, base_date, detail_level,
+                end_date, start_time, end_time, timezone)
         args, kwargs = make_request.call_args
         self.assertEqual((expected_url,), args)
 
@@ -756,35 +757,79 @@ class PartnerAPITest(TestBase):
         # Default
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=None, end_time=None,
+            end_date=None, start_time=None,
+            end_time=None, timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
         # start_date can be a date object
         self._test_intraday_timeseries(
             resource, base_date=datetime.date(1918, 5, 11),
-            detail_level='1min', start_time=None, end_time=None,
+            detail_level='1min', end_date=None, start_time=None,
+            end_time=None, timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min.json")
         # start_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(3, 56), end_time='15:07',
+            end_date=None, start_time=datetime.time(3, 56),
+            end_time='15:07', timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json")
         # end_time can be a datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time='3:56', end_time=datetime.time(15, 7),
+            end_date=None, start_time='3:56',
+            end_time=datetime.time(15, 7), timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json")
         # start_time can be a midnight datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(0, 0), end_time=datetime.time(15, 7),
+            end_date=None, start_time=datetime.time(0, 0),
+            end_time=datetime.time(15, 7), timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/00:00/15:07.json")
         # end_time can be a midnight datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(3, 56), end_time=datetime.time(0, 0),
+            end_date=None, start_time=datetime.time(3, 56),
+            end_time=datetime.time(0, 0), timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/03:56/00:00.json")
         # start_time and end_time can be a midnight datetime object
         self._test_intraday_timeseries(
             resource, base_date=base_date, detail_level='1min',
-            start_time=datetime.time(0, 0), end_time=datetime.time(0, 0),
+            end_date=None, start_time=datetime.time(0, 0),
+            end_time=datetime.time(0, 0), timezone=None,
             expected_url=URLBASE + "/-/FOO/date/1918-05-11/1d/1min/time/00:00/00:00.json")
+
+
+    def _test_intraday_timeseries2(self, resource, base_date, end_date, expected_url):
+        """ Helper method for intraday timeseries tests """
+        with mock.patch.object(self.fb, 'make_request') as make_request:
+            retval = self.fb.intraday_time_series2(
+                resource, base_date, end_date)
+        args, kwargs = make_request.call_args
+        self.assertEqual((expected_url,), args)
+
+    def test_intraday_timeseries2(self):
+        """
+        Intraday Time Series tests:
+        https://dev.fitbit.com/docs/activity/#get-activity-intraday-time-series
+
+        Tests the following methods/URLs:
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min/time/03:56/15:07.json
+        GET https://api.fitbit.com/1/user/-/FOO/date/1918-05-11/1d/1min/time/3:56/15:07.json
+        """
+        resource = 'FOO'
+        base_date = '1918-05-11'
+
+        # Default
+        self._test_intraday_timeseries2(
+            resource, base_date=base_date, end_date=None,
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/all.json")
+        # base_date can be a date object
+        self._test_intraday_timeseries2(
+            resource, base_date=datetime.date(1918, 5, 11), end_date=None,
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/all.json")
+        # end_date can be a date object
+        self._test_intraday_timeseries2(
+            resource, base_date=datetime.date(1918, 5, 11),
+            end_date=datetime.date(1918, 5, 12),
+            expected_url=URLBASE + "/-/FOO/date/1918-05-11/1918-05-12/all.json")
